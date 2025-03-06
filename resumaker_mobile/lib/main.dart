@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import 'Forms/login.dart';
+import 'Forms/register.dart';
+import 'Pages/enter_user.dart';
 import 'Pages/home.dart';
 
 void main() {
@@ -23,6 +26,9 @@ class MyApp extends StatelessWidget {
       routes: {
         '/': (context) => HomeScreen(), // HomeScreen from home.dart
         '/second': (context) => const SecondScreen(), // Example additional page
+        '/enter_user': (context) => EnterUser(), // EnterUser from enter_user.dart
+        '/login': (context) => LoginUser(), // EnterUser from enter_user.dart
+        '/register': (context) => RegisterUser(), // EnterUser from enter_user.dart
       },
     );
   }
