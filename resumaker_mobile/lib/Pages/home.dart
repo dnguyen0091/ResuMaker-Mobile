@@ -54,7 +54,7 @@ class HomeScreen extends StatelessWidget {
             right: 115,
             child: ElevatedButton(
               onPressed: () {
-                Navigator.pushNamed(context, '/second');
+                Navigator.pushNamed(context, '/enter_user');
               },
               style: ElevatedButton.styleFrom(
                 minimumSize: const Size(200, 50),
@@ -83,7 +83,7 @@ class HomeScreen extends StatelessWidget {
               ),
             ),
           ),
-          
+           
           // "Already a user? Login" button
           Positioned(
             bottom: 140,
@@ -91,7 +91,7 @@ class HomeScreen extends StatelessWidget {
             right: 115,
             child: TextButton(
               onPressed: () {
-                Navigator.pushNamed(context, '/second');
+                Navigator.pushNamed(context, '/enter_user');
               },
               child: const Text(
                 'Already a user? Login',
