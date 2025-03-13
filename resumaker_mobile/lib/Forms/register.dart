@@ -84,6 +84,8 @@ class _RegisterUserState extends State<RegisterUser> {
                   decoration: const InputDecoration(
                     labelText: 'Email',
                     hintText: 'example@example.org',
+                    errorStyle: TextStyle(color: Colors.red),
+                    border: OutlineInputBorder(),
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -104,7 +106,9 @@ class _RegisterUserState extends State<RegisterUser> {
                         controller: _firstNameController,
                         decoration: const InputDecoration(
                           labelText: 'First Name',
-                          hintText: 'John',
+                          hintText: 'Ex. John',
+                          errorStyle: TextStyle(color: Colors.red),
+                          border:OutlineInputBorder(),
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
@@ -120,7 +124,9 @@ class _RegisterUserState extends State<RegisterUser> {
                         controller: _lastNameController,
                         decoration: const InputDecoration(
                           labelText: 'Last Name',
-                          hintText: 'Doe',
+                          hintText: 'Ex. Doe',
+                          errorStyle: TextStyle(color: Colors.red),
+                          border: OutlineInputBorder(),
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
@@ -141,6 +147,8 @@ class _RegisterUserState extends State<RegisterUser> {
                   decoration: InputDecoration(
                     labelText: 'Password',
                     hintText: 'Password',
+                    errorStyle: const TextStyle(color: Colors.red),
+                    border: const OutlineInputBorder(),
                     suffixIcon: IconButton(
                       icon: Icon(
                         _obscurePassword ? Icons.visibility : Icons.visibility_off,
@@ -179,7 +187,9 @@ class _RegisterUserState extends State<RegisterUser> {
                   obscureText: _obscureConfirmPassword,
                   decoration: InputDecoration(
                     labelText: 'Confirm Password',
-                    hintText: 'Password',
+                    hintText: 'Confirm Password',
+                    errorStyle: const TextStyle(color: Colors.red),
+                    border: const OutlineInputBorder(),
                     suffixIcon: IconButton(
                       icon: Icon(
                         _obscureConfirmPassword ? Icons.visibility : Icons.visibility_off,
