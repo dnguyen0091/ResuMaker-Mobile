@@ -8,10 +8,8 @@ class RegisterUser extends StatefulWidget {
 }
 
 class _RegisterUserState extends State<RegisterUser> {
-  // Add a form key to access the form state
   final _formKey = GlobalKey<FormState>();
   
-  // Add controllers for each field
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _firstNameController = TextEditingController();
   final TextEditingController _lastNameController = TextEditingController();
@@ -20,12 +18,59 @@ class _RegisterUserState extends State<RegisterUser> {
   
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
+  
+  // Password requirement states
+  bool _hasMinLength = false;
+  bool _hasUppercase = false;
+  bool _hasNumber = false;
+  bool _hasSpecialChar = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Add listener to password field to check requirements in real-time
+    _passwordController.addListener(_checkPasswordRequirements);
+  }
+  
+  void _checkPasswordRequirements() {
+    setState(() {
+      final password = _passwordController.text;
+      _hasMinLength = password.length >= 8;
+      _hasUppercase = RegExp(r'[A-Z]').hasMatch(password);
+      _hasNumber = RegExp(r'[0-9]').hasMatch(password);
+      _hasSpecialChar = RegExp(r'[!@#\$%^&*(),.?":{}|<>]').hasMatch(password);
+    });
+  }
+
+  Widget _buildRequirementRow(bool isMet, String text) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 4.0),
+      child: Row(
+        children: [
+          Icon(
+            isMet ? Icons.check_circle : Icons.cancel,
+            color: isMet ? Colors.green : Colors.grey,
+            size: 16,
+          ),
+          const SizedBox(width: 8),
+          Text(
+            text,
+            style: TextStyle(
+              color: isMet ? Colors.green : Colors.grey,
+              fontSize: 12,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Form(
-      key: _formKey, // Connect the form key
+      key: _formKey,
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           TextFormField(
             controller: _emailController,
@@ -38,7 +83,6 @@ class _RegisterUserState extends State<RegisterUser> {
               if (value == null || value.isEmpty) {
                 return 'Email is required';
               }
-              // Simple email validation
               if (!value.contains('@') || !value.contains('.')) {
                 return 'Enter a valid email address';
               }
@@ -106,24 +150,21 @@ class _RegisterUserState extends State<RegisterUser> {
               if (value == null || value.isEmpty) {
                 return 'Password is required';
               }
-              if (value.length < 8) {
-                return 'Password must be at least 8 characters';
-              }
-              
-              if (!RegExp(r'[A-Z]').hasMatch(value)) {
-                return 'Password must contain at least one uppercase letter';
-              }
-              
-              if (!RegExp(r'[0-9]').hasMatch(value)) {
-                return 'Password must contain at least one number';
-              }
-              
-              if (!RegExp(r'[!@#\$%^&*(),.?":{}|<>]').hasMatch(value)) {
-                return 'Password must contain at least one special character';
+              if (!_hasMinLength || !_hasUppercase || !_hasNumber || !_hasSpecialChar) {
+                return 'Password does not meet all requirements';
               }
               return null;
             },
           ),
+          
+          // Password requirements checklist
+          if (_passwordController.text.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            _buildRequirementRow(_hasMinLength, 'At least 8 characters'),
+            _buildRequirementRow(_hasUppercase, 'At least one uppercase letter'),
+            _buildRequirementRow(_hasNumber, 'At least one number'),
+            _buildRequirementRow(_hasSpecialChar, 'At least one special character'),
+          ],
           
           const SizedBox(height: 16),
           
@@ -157,33 +198,34 @@ class _RegisterUserState extends State<RegisterUser> {
           
           const SizedBox(height: 24),
           
-          ElevatedButton(
-            onPressed: () {
-              if (formValidation()) {
-                // Proceed with registration
-                print('Registration form is valid!');
-                print('Email: ${_emailController.text}');
-                print('Name: ${_firstNameController.text} ${_lastNameController.text}');
-              }
-            },
-            child: const Text('Register'),
+          SizedBox(
+            width: double.infinity, // Make button full width
+            child: ElevatedButton(
+              onPressed: () {
+                if (_formKey.currentState!.validate()) {
+                  // Proceed with registration
+                  print('Registration form is valid!');
+                  print('Email: ${_emailController.text}');
+                  print('Name: ${_firstNameController.text} ${_lastNameController.text}');
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+              ),
+              child: const Text('Register'),
+            ),
           ),
         ],
       ),
     );
   }
 
-  bool formValidation() {
-    // This will run all validators and return true if they all pass
-    return _formKey.currentState!.validate();
-  }
-  
   @override
   void dispose() {
-    // Clean up controllers
     _emailController.dispose();
     _firstNameController.dispose();
     _lastNameController.dispose();
+    _passwordController.removeListener(_checkPasswordRequirements);
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
