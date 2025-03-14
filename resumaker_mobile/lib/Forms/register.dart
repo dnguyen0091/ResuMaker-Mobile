@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import './verification.dart';
 class RegisterUser extends StatefulWidget {
   const RegisterUser({super.key});
   
@@ -223,6 +224,18 @@ class _RegisterUserState extends State<RegisterUser> {
                         print('Registration form is valid!');
                         print('Email: ${_emailController.text}');
                         print('Name: ${_firstNameController.text} ${_lastNameController.text}');
+                        print('Password: ${_passwordController.text}');
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => VerifyUser(
+                              email: _emailController.text,
+                              firstName: _firstNameController.text,
+                              lastName: _lastNameController.text,
+                              password: _passwordController.text,
+                            ),
+                          ),
+                        );
                       }
                     },
                     style: ElevatedButton.styleFrom(
