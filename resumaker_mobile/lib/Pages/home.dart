@@ -10,6 +10,7 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColor.background, // Set background color
       body: Stack(
         children: [
           // Wrap the Center and Column in a Positioned widget
@@ -26,22 +27,22 @@ class HomeScreen extends StatelessWidget {
                     width: 350.0,
                     height: 350.0,
                   ),
-                  const SizedBox(height: 10), // Increased spacing above the text
+                  const SizedBox(height: 10),
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 30), // Add padding on sides
-                    child: const Text(
-                      "Your ultimate AI-powered tool for crafting standout resumes, optimizing your application, and acing your next interview.",
+                    padding: const EdgeInsets.symmetric(horizontal: 30),
+                    child: Text(
+                      "Your ultimate AI-powered tool for crafting standout resumes and optimizing your application",
                       style: TextStyle(
-                        fontSize: 18, // Slightly smaller font size
-                        height: 1.4, // Add line spacing
-                        letterSpacing: 0.5, // Add letter spacing
-                        fontWeight: FontWeight.w400, // Slightly lighter weight
-                        color: Colors.black87, // Slightly softer color
+                        fontSize: 18,
+                        height: 1.4,
+                        letterSpacing: 0.5,
+                        fontWeight: FontWeight.w400,
+                        color: AppColor.text, // Use text color from theme
                       ),
                       textAlign: TextAlign.center,
                     ),
                   ),
-                  const SizedBox(height: 20), // Add spacing below the text
+                  const SizedBox(height: 20),
                 ],
               ),
             ),
@@ -54,12 +55,12 @@ class HomeScreen extends StatelessWidget {
             right: 115,
             child: ElevatedButton(
               onPressed: () {
-                Navigator.pushNamed(context, '/second');
+                Navigator.pushNamed(context, '/enter_user');
               },
               style: ElevatedButton.styleFrom(
                 minimumSize: const Size(200, 50),
-                backgroundColor: AppColor.accentLight,
-                foregroundColor: Colors.white,
+                backgroundColor: AppColor.accent, // Use accent color for button
+                foregroundColor: AppColor.text, // Text color
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(30),
                 ),
@@ -68,21 +69,25 @@ class HomeScreen extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text(
+                  Text(
                     'Get Started',
-                    style: TextStyle(fontSize: 18),
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: AppColor.text, // Use text color from theme
+                    ),
                   ),
                   const SizedBox(width: 8),
                   SvgPicture.asset(
                     Assets.rightArrow,
                     width: 20,
                     height: 20,
+                    color: AppColor.icon, // Use icon color from theme
                   ),
                 ],
               ),
             ),
           ),
-          
+           
           // "Already a user? Login" button
           Positioned(
             bottom: 140,
@@ -90,13 +95,16 @@ class HomeScreen extends StatelessWidget {
             right: 115,
             child: TextButton(
               onPressed: () {
-                Navigator.pushNamed(context, '/second');
+                Navigator.pushNamed(context, '/enter_user');
               },
-              child: const Text(
+              style: TextButton.styleFrom(
+                foregroundColor: AppColor.secondaryText, // Use secondary text color
+              ),
+              child: Text(
                 'Already a user? Login',
                 style: TextStyle(
                   fontSize: 16,
-                  color: Colors.grey,
+                  color: AppColor.secondaryText, // Use secondary text color
                 ),
               ),
             ),

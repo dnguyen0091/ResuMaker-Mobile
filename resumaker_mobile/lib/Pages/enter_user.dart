@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../Forms/login.dart';
 import '../Forms/register.dart';
+import '../app_color.dart';
 
 class EnterUser extends StatefulWidget {
   const EnterUser({super.key});
@@ -32,11 +33,32 @@ class _EnterUserState extends State<EnterUser> with SingleTickerProviderStateMix
   Widget build(BuildContext context) {
     
     return Scaffold(
-      resizeToAvoidBottomInset:true, 
+      backgroundColor: AppColor.background,
+      resizeToAvoidBottomInset: true, 
       body: SafeArea(
         child: Column(
           children: [
-            const SizedBox(height: 50),
+            // Add back button row at the top
+            Padding(
+              padding: const EdgeInsets.only(left: 16.0, top: 8.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  IconButton(
+                    icon: Icon(
+                      Icons.arrow_back,
+                      color: AppColor.icon,
+                      size: 28,
+                    ),
+                    onPressed: () {
+                      Navigator.pushReplacementNamed(context, '/'); // Navigate back to home
+                    },
+                  ),
+                ],
+              ),
+            ),
+            
+            const SizedBox(height: 20), // Reduced height since we have the back button row now
             
             // Animated custom tab bar
             Padding(
@@ -44,8 +66,9 @@ class _EnterUserState extends State<EnterUser> with SingleTickerProviderStateMix
               child: Container(
                 height: 50,
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
+                  color: AppColor.inputField,
                   borderRadius: BorderRadius.circular(25.0),
+                  border: Border.all(color: AppColor.border, width: 1.0),
                 ),
                 child: Stack(
                   children: [
@@ -59,7 +82,7 @@ class _EnterUserState extends State<EnterUser> with SingleTickerProviderStateMix
                       width: (MediaQuery.of(context).size.width - 80) / 2,
                       child: Container(
                         decoration: BoxDecoration(
-                          color: Colors.blue,
+                          color: AppColor.accent,
                           borderRadius: BorderRadius.circular(25.0),
                         ),
                       ),
@@ -70,8 +93,8 @@ class _EnterUserState extends State<EnterUser> with SingleTickerProviderStateMix
                       indicator: const BoxDecoration(), // No indicator
                       dividerColor: Colors.transparent,
                       overlayColor: MaterialStateProperty.all(Colors.transparent),
-                      labelColor: Colors.white,
-                      unselectedLabelColor: Colors.black,
+                      labelColor: AppColor.text,
+                      unselectedLabelColor: AppColor.secondaryText,
                       tabs: const [
                         Tab(text: 'Login'),
                         Tab(text: 'Register'),
@@ -88,26 +111,31 @@ class _EnterUserState extends State<EnterUser> with SingleTickerProviderStateMix
                 controller: _tabController,
                 children: [
                   // Login form
-                  
-                  Padding(
-                    padding: const EdgeInsets.all(20.0),
-                    child:Column(
-                      children:[
-                        const SizedBox(height: 50,),
-                        Expanded(child:LoginUser()),
-                      ]
-                    ) 
+                  Container(
+                    color: AppColor.background,
+                    child: Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Column(
+                        children: [
+                          const SizedBox(height: 20), // Reduced height
+                          Expanded(child: LoginUser()),
+                        ]
+                      ) 
+                    ),
                   ),
                   
                   // Register form
-                  Padding(
-                    padding: const EdgeInsets.all(20.0),
-                    child:Column(
-                      children: [
-                        const SizedBox(height: 50,),
-                        Expanded(child:RegisterUser()),
-                      ],
-                    ) 
+                  Container(
+                    color: AppColor.background,
+                    child: Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Column(
+                        children: [
+                          const SizedBox(height: 20), // Reduced height
+                          Expanded(child: RegisterUser()),
+                        ],
+                      ) 
+                    ),
                   ),
                 ],
               ),
