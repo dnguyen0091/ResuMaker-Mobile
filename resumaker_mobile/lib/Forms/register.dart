@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../app_color.dart';
 import './verification.dart';
+
 class RegisterUser extends StatefulWidget {
   const RegisterUser({super.key});
   
@@ -50,14 +52,14 @@ class _RegisterUserState extends State<RegisterUser> {
         children: [
           Icon(
             isMet ? Icons.check_circle : Icons.cancel,
-            color: isMet ? Colors.green : Colors.grey,
+            color: isMet ? AppColor.accent : AppColor.secondaryText,
             size: 16,
           ),
           const SizedBox(width: 8),
           Text(
             text,
             style: TextStyle(
-              color: isMet ? Colors.green : Colors.grey,
+              color: isMet ? AppColor.accent : AppColor.secondaryText,
               fontSize: 12,
             ),
           ),
@@ -68,13 +70,11 @@ class _RegisterUserState extends State<RegisterUser> {
 
   @override
   Widget build(BuildContext context) {
-    
-    final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
     return LayoutBuilder(
       builder:(context,constraints){
         return SingleChildScrollView(
           padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-          child:Form(
+          child: Form(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -82,11 +82,26 @@ class _RegisterUserState extends State<RegisterUser> {
                 TextFormField(
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
-                  decoration: const InputDecoration(
+                  style: TextStyle(color: AppColor.text),
+                  cursorColor: AppColor.accent,
+                  decoration: InputDecoration(
                     labelText: 'Email',
                     hintText: 'example@example.org',
-                    errorStyle: TextStyle(color: Colors.red),
-                    border: OutlineInputBorder(),
+                    labelStyle: TextStyle(color: AppColor.secondaryText),
+                    hintStyle: TextStyle(color: AppColor.secondaryText),
+                    errorStyle: const TextStyle(color: Colors.red),
+                    border: OutlineInputBorder(
+                      borderSide: BorderSide(color: AppColor.border),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: AppColor.border),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: AppColor.accent),
+                    ),
+                    filled: true,
+                    fillColor: AppColor.inputField,
+                    prefixIcon: Icon(Icons.email_outlined, color: AppColor.icon),
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -105,11 +120,26 @@ class _RegisterUserState extends State<RegisterUser> {
                     Expanded(
                       child: TextFormField(
                         controller: _firstNameController,
-                        decoration: const InputDecoration(
+                        style: TextStyle(color: AppColor.text),
+                        cursorColor: AppColor.accent,
+                        decoration: InputDecoration(
                           labelText: 'First Name',
                           hintText: 'Ex. John',
-                          errorStyle: TextStyle(color: Colors.red),
-                          border:OutlineInputBorder(),
+                          labelStyle: TextStyle(color: AppColor.secondaryText),
+                          hintStyle: TextStyle(color: AppColor.secondaryText),
+                          errorStyle: const TextStyle(color: Colors.red),
+                          border: OutlineInputBorder(
+                            borderSide: BorderSide(color: AppColor.border),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: AppColor.border),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: AppColor.accent),
+                          ),
+                          filled: true,
+                          fillColor: AppColor.inputField,
+                          prefixIcon: Icon(Icons.person_outline, color: AppColor.icon),
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
@@ -123,11 +153,26 @@ class _RegisterUserState extends State<RegisterUser> {
                     Expanded(
                       child: TextFormField(
                         controller: _lastNameController,
-                        decoration: const InputDecoration(
+                        style: TextStyle(color: AppColor.text),
+                        cursorColor: AppColor.accent,
+                        decoration: InputDecoration(
                           labelText: 'Last Name',
                           hintText: 'Ex. Doe',
-                          errorStyle: TextStyle(color: Colors.red),
-                          border: OutlineInputBorder(),
+                          labelStyle: TextStyle(color: AppColor.secondaryText),
+                          hintStyle: TextStyle(color: AppColor.secondaryText),
+                          errorStyle: const TextStyle(color: Colors.red),
+                          border: OutlineInputBorder(
+                            borderSide: BorderSide(color: AppColor.border),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: AppColor.border),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: AppColor.accent),
+                          ),
+                          filled: true,
+                          fillColor: AppColor.inputField,
+                          prefixIcon: Icon(Icons.person_outline, color: AppColor.icon),
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
@@ -145,14 +190,30 @@ class _RegisterUserState extends State<RegisterUser> {
                 TextFormField(
                   controller: _passwordController,
                   obscureText: _obscurePassword,
+                  style: TextStyle(color: AppColor.text),
+                  cursorColor: AppColor.accent,
                   decoration: InputDecoration(
                     labelText: 'Password',
                     hintText: 'Password',
+                    labelStyle: TextStyle(color: AppColor.secondaryText),
+                    hintStyle: TextStyle(color: AppColor.secondaryText),
                     errorStyle: const TextStyle(color: Colors.red),
-                    border: const OutlineInputBorder(),
+                    border: OutlineInputBorder(
+                      borderSide: BorderSide(color: AppColor.border),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: AppColor.border),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: AppColor.accent),
+                    ),
+                    filled: true,
+                    fillColor: AppColor.inputField,
+                    prefixIcon: Icon(Icons.lock_outline, color: AppColor.icon),
                     suffixIcon: IconButton(
                       icon: Icon(
                         _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                        color: AppColor.icon,
                       ),
                       onPressed: () {
                         setState(() {
@@ -186,14 +247,30 @@ class _RegisterUserState extends State<RegisterUser> {
                 TextFormField(
                   controller: _confirmPasswordController,
                   obscureText: _obscureConfirmPassword,
+                  style: TextStyle(color: AppColor.text),
+                  cursorColor: AppColor.accent,
                   decoration: InputDecoration(
                     labelText: 'Confirm Password',
                     hintText: 'Confirm Password',
+                    labelStyle: TextStyle(color: AppColor.secondaryText),
+                    hintStyle: TextStyle(color: AppColor.secondaryText),
                     errorStyle: const TextStyle(color: Colors.red),
-                    border: const OutlineInputBorder(),
+                    border: OutlineInputBorder(
+                      borderSide: BorderSide(color: AppColor.border),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: AppColor.border),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: AppColor.accent),
+                    ),
+                    filled: true,
+                    fillColor: AppColor.inputField,
+                    prefixIcon: Icon(Icons.lock_outline, color: AppColor.icon),
                     suffixIcon: IconButton(
                       icon: Icon(
                         _obscureConfirmPassword ? Icons.visibility : Icons.visibility_off,
+                        color: AppColor.icon,
                       ),
                       onPressed: () {
                         setState(() {
@@ -221,10 +298,6 @@ class _RegisterUserState extends State<RegisterUser> {
                     onPressed: () {
                       if (_formKey.currentState!.validate()) {
                         // Proceed with registration
-                        print('Registration form is valid!');
-                        print('Email: ${_emailController.text}');
-                        print('Name: ${_firstNameController.text} ${_lastNameController.text}');
-                        print('Password: ${_passwordController.text}');
                         Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -239,9 +312,17 @@ class _RegisterUserState extends State<RegisterUser> {
                       }
                     },
                     style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColor.accent,
+                      foregroundColor: AppColor.text,
                       padding: const EdgeInsets.symmetric(vertical: 12),
                     ),
-                    child: const Text('Register'),
+                    child: Text(
+                      'Register', 
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: AppColor.text,
+                      ),
+                    ),
                   ),
                 ),
               ],

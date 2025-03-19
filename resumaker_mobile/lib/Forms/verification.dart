@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../app_color.dart';
+
 class VerifyUser extends StatefulWidget {
   final String email;
   final String firstName;
@@ -25,9 +27,12 @@ class _VerificationPageState extends State<VerifyUser> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColor.background,
       appBar: AppBar(
-        title: const Text('Verify Your Email'),
+        title: Text('Verify Your Email', style: TextStyle(color: AppColor.text)),
         centerTitle: true,
+        backgroundColor: AppColor.card,
+        iconTheme: IconThemeData(color: AppColor.icon),
       ),
       // Use resizeToAvoidBottomInset to ensure form moves above keyboard
       resizeToAvoidBottomInset: true,
@@ -52,16 +57,16 @@ class _VerificationPageState extends State<VerifyUser> {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     // Icon or image for visual appeal
-                    const Icon(
+                    Icon(
                       Icons.email_outlined,
                       size: 80,
-                      color: Colors.blue,
+                      color: AppColor.accent,
                     ),
                     const SizedBox(height: 32),
                     
                     Text(
                       'Verification code has been sent to:',
-                      style: const TextStyle(fontSize: 16),
+                      style: TextStyle(fontSize: 16, color: AppColor.text),
                       textAlign: TextAlign.center,
                     ),
                     
@@ -69,9 +74,10 @@ class _VerificationPageState extends State<VerifyUser> {
                     
                     Text(
                       widget.email,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 18, 
-                        fontWeight: FontWeight.bold
+                        fontWeight: FontWeight.bold,
+                        color: AppColor.text,
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -82,16 +88,30 @@ class _VerificationPageState extends State<VerifyUser> {
                       controller: _verificationCodeController,
                       keyboardType: TextInputType.number,
                       textAlign: TextAlign.center,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 24,
                         letterSpacing: 8,
+                        color: AppColor.text,
                       ),
                       maxLength: 6,
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         labelText: 'Verification Code',
+                        labelStyle: TextStyle(color: AppColor.secondaryText),
                         hintText: '123456',
-                        border: OutlineInputBorder(),
+                        hintStyle: TextStyle(color: AppColor.secondaryText),
+                        border: OutlineInputBorder(
+                          borderSide: BorderSide(color: AppColor.border),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: AppColor.border),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: AppColor.accent),
+                        ),
+                        filled: true,
+                        fillColor: AppColor.inputField,
                         counterText: "", // Hide the counter
+                        errorStyle: TextStyle(color: Colors.red),
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
@@ -116,10 +136,12 @@ class _VerificationPageState extends State<VerifyUser> {
                         },
                         style: ElevatedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 16),
+                          backgroundColor: AppColor.accent,
+                          foregroundColor: AppColor.text,
                         ),
-                        child: const Text(
+                        child: Text(
                           'Verify',
-                          style: TextStyle(fontSize: 16),
+                          style: TextStyle(fontSize: 16, color: AppColor.text),
                         ),
                       ),
                     ),
@@ -129,10 +151,19 @@ class _VerificationPageState extends State<VerifyUser> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Text("Didn't receive the code?"),
+                        Text(
+                          "Didn't receive the code?",
+                          style: TextStyle(color: AppColor.secondaryText),
+                        ),
                         TextButton(
                           onPressed: _resendCode,
-                          child: const Text('Resend'),
+                          style: TextButton.styleFrom(
+                            foregroundColor: AppColor.accent,
+                          ),
+                          child: Text(
+                            'Resend',
+                            style: TextStyle(color: AppColor.accent),
+                          ),
                         ),
                       ],
                     ),
@@ -149,14 +180,20 @@ class _VerificationPageState extends State<VerifyUser> {
   void _verifyCode() {
     // Verification logic...
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Verifying...')),
+      SnackBar(
+        content: Text('Verifying...', style: TextStyle(color: AppColor.text)),
+        backgroundColor: AppColor.card,
+      ),
     );
   }
   
   void _resendCode() {
     // Resend code logic...
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('New verification code sent')),
+      SnackBar(
+        content: Text('New verification code sent', style: TextStyle(color: AppColor.text)),
+        backgroundColor: AppColor.card,
+      ),
     );
   }
   

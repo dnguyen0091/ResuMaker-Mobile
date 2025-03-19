@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../app_color.dart';
+
 class ForgotPassword extends StatefulWidget {
   const ForgotPassword({super.key});
   
@@ -14,9 +16,12 @@ class _ForgotPasswordState extends State<ForgotPassword> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColor.background,
       appBar: AppBar(
-        title: const Text('Forgot Password'),
+        title: Text('Forgot Password', style: TextStyle(color: AppColor.text)),
         centerTitle: true,
+        backgroundColor: AppColor.card,
+        iconTheme: IconThemeData(color: AppColor.icon),
       ),
       // Use resizeToAvoidBottomInset to ensure form moves above keyboard
       resizeToAvoidBottomInset: true,
@@ -41,27 +46,31 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     // Icon for visual appeal
-                    const Icon(
+                    Icon(
                       Icons.lock_reset,
                       size: 80,
-                      color: Colors.blue,
+                      color: AppColor.accent,
                     ),
                     const SizedBox(height: 32),
                     
-                    const Text(
+                    Text(
                       'Forgot your password?',
                       style: TextStyle(
                         fontSize: 22, 
-                        fontWeight: FontWeight.bold
+                        fontWeight: FontWeight.bold,
+                        color: AppColor.text,
                       ),
                       textAlign: TextAlign.center,
                     ),
                     
                     const SizedBox(height: 16),
                     
-                    const Text(
+                    Text(
                       'Enter your email address and we will send you a password reset link',
-                      style: TextStyle(fontSize: 16),
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: AppColor.secondaryText,
+                      ),
                       textAlign: TextAlign.center,
                     ),
                     
@@ -70,11 +79,26 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                     TextFormField(
                       controller: _emailController,
                       keyboardType: TextInputType.emailAddress,
-                      decoration: const InputDecoration(
+                      style: TextStyle(color: AppColor.text),
+                      cursorColor: AppColor.accent,
+                      decoration: InputDecoration(
                         labelText: 'Email',
                         hintText: 'Enter your email address',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.email_outlined),
+                        labelStyle: TextStyle(color: AppColor.secondaryText),
+                        hintStyle: TextStyle(color: AppColor.secondaryText),
+                        errorStyle: const TextStyle(color: Colors.red),
+                        border: OutlineInputBorder(
+                          borderSide: BorderSide(color: AppColor.border),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: AppColor.border),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: AppColor.accent),
+                        ),
+                        filled: true,
+                        fillColor: AppColor.inputField,
+                        prefixIcon: Icon(Icons.email_outlined, color: AppColor.icon),
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
@@ -99,7 +123,13 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                           if (_formKey.currentState!.validate()) {
                             // Send reset password email
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Reset link sent to your email')),
+                              SnackBar(
+                                content: Text(
+                                  'Reset link sent to your email',
+                                  style: TextStyle(color: AppColor.text),
+                                ),
+                                backgroundColor: AppColor.card,
+                              ),
                             );
                             
                             // Navigate back to login after a delay
@@ -109,11 +139,16 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                           }
                         },
                         style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColor.accent,
+                          foregroundColor: AppColor.text,
                           padding: const EdgeInsets.symmetric(vertical: 16),
                         ),
-                        child: const Text(
+                        child: Text(
                           'Send Reset Link',
-                          style: TextStyle(fontSize: 16),
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: AppColor.text,
+                          ),
                         ),
                       ),
                     ),
@@ -124,7 +159,13 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                       onPressed: () {
                         Navigator.pop(context);
                       },
-                      child: const Text('Back to Login'),
+                      style: TextButton.styleFrom(
+                        foregroundColor: AppColor.secondaryText,
+                      ),
+                      child: Text(
+                        'Back to Login',
+                        style: TextStyle(color: AppColor.secondaryText),
+                      ),
                     ),
                   ],
                 ),
