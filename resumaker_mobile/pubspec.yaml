@@ -69,6 +69,9 @@ flutter:
     - lib/assets/icons/logo.png
     - lib/assets/icons/ResumakerLogo.png
     - lib/assets/icons/Resumaker.png
+    - lib/assets/icons/builder.svg
+    - lib/assets/icons/scan.svg
+    - lib/assets/icons/profile.svg
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
 
