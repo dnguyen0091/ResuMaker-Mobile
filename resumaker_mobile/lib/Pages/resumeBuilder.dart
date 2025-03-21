@@ -743,7 +743,7 @@ class _ResumeBuilderState extends State<ResumeBuilder> {
               ),
             ),
             const Divider(
-              height: 20,
+              height: 5,
               thickness: 1,
               color: Colors.grey,
             ),
@@ -751,7 +751,7 @@ class _ResumeBuilderState extends State<ResumeBuilder> {
         ),
       );
       
-      sectionsWidgets.add(const SizedBox(height: 8));
+      sectionsWidgets.add(const SizedBox(height: 4));
       
       for (final entry in section.entries) {
         if (entry.title.isEmpty && entry.bulletPoints.every((point) => point.isEmpty)) {
@@ -762,40 +762,54 @@ class _ResumeBuilderState extends State<ResumeBuilder> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (entry.title.isNotEmpty)
-                Text(
-                  entry.title,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                  ),
-                ),
-                
-              if (entry.subtitle.isNotEmpty)
-                Text(
-                  entry.subtitle,
-                  style: TextStyle(
-                    fontWeight: FontWeight.w500,
-                    color: Colors.grey[800],
-                  ),
-                ),
-                
-              if (entry.location.isNotEmpty)
-                Text(
-                  entry.location,
-                  style: TextStyle(color: Colors.grey[700]),
-                ),
-                
-              if (entry.startDate.isNotEmpty || entry.endDate.isNotEmpty)
-                Text(
-                  '${entry.startDate.isNotEmpty ? entry.startDate : 'Start Date'} - ${entry.isCurrentPosition ? 'Present' : (entry.endDate.isNotEmpty ? entry.endDate : 'End Date')}',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[600],
-                    fontStyle: FontStyle.italic,
-                  ),
-                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  if (entry.title.isNotEmpty)
+                    Expanded(
+                      child: Text(
+                        entry.title,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ),
+                  if (entry.startDate.isNotEmpty || entry.endDate.isNotEmpty)
+                    Text(
+                      '${entry.startDate.isNotEmpty ? entry.startDate : 'Start Date'} - ${entry.isCurrentPosition ? 'Present' : (entry.endDate.isNotEmpty ? entry.endDate : 'End Date')}',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey[600],
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                ],
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  if (entry.subtitle.isNotEmpty)
+                    Expanded(
+                      child: Text(
+                        entry.subtitle,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w500,
+                          color: Colors.grey[800],
+                        ),
+                      ),
+                    ),
+                  if (entry.location.isNotEmpty)
+                    Text(
+                      entry.location,
+                      style: TextStyle(
+                        color: Colors.grey[700],
+                      ),
+                    ),
+                ],
+              ),
+              
               
               const SizedBox(height: 6),
               
