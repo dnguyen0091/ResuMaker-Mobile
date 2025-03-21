@@ -441,55 +441,56 @@ class _ResumeBuilderState extends State<ResumeBuilder> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Name
-                Text(
-                  _resumeData['personalInfo']['name'] ?? 'Your Name',
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
+                Center(
+                  child: Text(
+                    _resumeData['personalInfo']['name']?.isNotEmpty == true ? _resumeData['personalInfo']['name'] : 'Your Name',
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
                   ),
                 ),
-                const SizedBox(height: 8),
+                
                 
                 // Contact info
+                const SizedBox(height: 1),
+
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.email, size: 16, color: Colors.grey[700]),
-                    const SizedBox(width: 8),
-                    Text(
-                      _resumeData['personalInfo']['email'] ?? 'email@example.com',
-                      style: TextStyle(color: Colors.grey[700]),
+                    Flexible(
+                      child: Text(
+                        _resumeData['personalInfo']['email'] ?? 'email@example.com',
+                        style: TextStyle(color: Colors.grey[700]),
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
-                    const SizedBox(width: 16),
-                    Icon(Icons.phone, size: 16, color: Colors.grey[700]),
-                    const SizedBox(width: 8),
-                    Text(
-                      _resumeData['personalInfo']['phone'] ?? '(123) 456-7890',
-                      style: TextStyle(color: Colors.grey[700]),
+                    Text(" | ", style: TextStyle(color: Colors.grey[700])),
+                    Flexible(
+                      child: Text(
+                        _resumeData['personalInfo']['phone'] ?? '(123) 456-7890',
+                        style: TextStyle(color: Colors.grey[700]),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    Text(" | ", style: TextStyle(color: Colors.grey[700])),
+                    Flexible(
+                      child: Text(
+                        _resumeData['personalInfo']['location'] ?? 'City, State',
+                        style: TextStyle(color: Colors.grey[700]),
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 4),
-                
-                // Location
-                Row(
-                  children: [
-                    Icon(Icons.location_on, size: 16, color: Colors.grey[700]),
-                    const SizedBox(width: 8),
-                    Text(
-                      _resumeData['personalInfo']['location'] ?? 'City, State',
-                      style: TextStyle(color: Colors.grey[700]),
-                    ),
-                  ],
-                ),
-                
-                const Divider(height: 32, color: Colors.grey),
-                
-                // Experience section
-                ..._buildPreviewExperience(),
+                // const SizedBox(height: 2),
                 
                 // Education section
                 ..._buildPreviewEducation(),
+                
+                // Experience section
+                ..._buildPreviewExperience(),
                 
                 // Custom sections
                 ..._buildPreviewCustomSections(),
@@ -519,47 +520,57 @@ class _ResumeBuilderState extends State<ResumeBuilder> {
           color: Colors.grey[800],
         ),
       ),
-      const SizedBox(height: 8),
+      const Divider(height: 5, color: Colors.grey),
+      const SizedBox(height: 4),
       
       ...experiences.map((exp) {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              exp.title.isNotEmpty ? exp.title : 'Position',
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
-              ),
-            ),
-            const SizedBox(height: 2),
-            
             Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
+                Expanded(
+                  child: Text(
+                    exp.title.isNotEmpty ? exp.title : 'Position',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                ),
                 Text(
-                  exp.company.isNotEmpty ? exp.company : 'Company',
+                  '${exp.startDate.isNotEmpty ? exp.startDate : 'Start Date'} - ${exp.isCurrentPosition ? 'Present' : (exp.endDate.isNotEmpty ? exp.endDate : 'End Date')}',
                   style: TextStyle(
-                    fontWeight: FontWeight.w500,
-                    color: Colors.grey[800],
+                    fontSize: 12,
+                    color: Colors.grey[600],
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ],
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    exp.company.isNotEmpty ? exp.company : 'Company',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w500,
+                      color: Colors.grey[800],
+                    ),
                   ),
                 ),
                 if (exp.location.isNotEmpty)
                   Text(
-                    ' • ${exp.location}',
-                    style: TextStyle(color: Colors.grey[700]),
+                    exp.location,
+                    style: TextStyle(
+                      color: Colors.grey[700],
+                    ),
                   ),
               ],
-            ),
-            
-            Text(
-              '${exp.startDate.isNotEmpty ? exp.startDate : 'Start Date'} - ${exp.isCurrentPosition ? 'Present' : (exp.endDate.isNotEmpty ? exp.endDate : 'End Date')}',
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey[600],
-                fontStyle: FontStyle.italic,
-              ),
-            ),
+            ),         
             
             const SizedBox(height: 6),
             
@@ -613,48 +624,63 @@ class _ResumeBuilderState extends State<ResumeBuilder> {
           color: Colors.grey[800],
         ),
       ),
-      const SizedBox(height: 8),
+      const Divider(height: 5, color: Colors.grey),
+      const SizedBox(height: 4),
       
       ...educations.map((edu) {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              edu.school.isNotEmpty ? edu.school : 'University/School',
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    edu.school.isNotEmpty ? edu.school : 'University/School',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                ),
+                if (edu.location.isNotEmpty)
+                  Text(
+                    edu.location,
+                    style: TextStyle(
+                      color: Colors.grey[700],
+                    ),
+                  ),
+              ],
             ),
             const SizedBox(height: 2),
             
-            if (edu.degree.isNotEmpty || edu.fieldOfStudy.isNotEmpty)
-              Text(
-                '${edu.degree.isNotEmpty ? edu.degree : ''} ${edu.fieldOfStudy.isNotEmpty ? 'in ' + edu.fieldOfStudy : ''}'.trim(),
-                style: TextStyle(
-                  fontWeight: FontWeight.w500,
-                  color: Colors.grey[800],
-                ),
-              ),
-              
-            if (edu.location.isNotEmpty)
-              Text(
-                edu.location,
-                style: TextStyle(color: Colors.grey[700]),
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                if (edu.degree.isNotEmpty || edu.fieldOfStudy.isNotEmpty)
+                  Expanded(
+                    child: Text(
+                      '${edu.degree.isNotEmpty ? edu.degree : ''} ${edu.fieldOfStudy.isNotEmpty ? 'in ' + edu.fieldOfStudy : ''}'.trim(),
+                      style: TextStyle(
+                        fontWeight: FontWeight.w500,
+                        color: Colors.grey[800],
+                      ),
+                    ),
+                  ),
+                if (edu.startDate.isNotEmpty || edu.endDate.isNotEmpty)
+                  Text(
+                    '${edu.startDate.isNotEmpty ? edu.startDate : 'Start Date'} - ${edu.endDate.isNotEmpty ? edu.endDate : 'End Date'}',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey[600],
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+              ],
+            ),
             
-            if (edu.startDate.isNotEmpty || edu.endDate.isNotEmpty)
-              Text(
-                '${edu.startDate.isNotEmpty ? edu.startDate : 'Start Date'} - ${edu.endDate.isNotEmpty ? edu.endDate : 'End Date'}',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey[600],
-                  fontStyle: FontStyle.italic,
-                ),
-              ),
-            
-            const SizedBox(height: 6),
+            const SizedBox(height: 3),
             
             ...edu.bulletPoints.where((point) => point.isNotEmpty).map((point) {
               return Padding(
@@ -705,13 +731,23 @@ class _ResumeBuilderState extends State<ResumeBuilder> {
       }
       
       sectionsWidgets.add(
-        Text(
-          section.title.isNotEmpty ? section.title : 'Custom Section',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: Colors.grey[800],
-          ),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              section.title.isNotEmpty ? section.title : 'Custom Section',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey[800],
+              ),
+            ),
+            const Divider(
+              height: 20,
+              thickness: 1,
+              color: Colors.grey,
+            ),
+          ],
         ),
       );
       
