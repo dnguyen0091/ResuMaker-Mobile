@@ -1,8 +1,10 @@
-// Example usage in a page
 import 'package:flutter/material.dart';
 
+import '../Widgets/header.dart';
 import '../Widgets/navi_button.dart';
 import '../app_color.dart';
+import 'Resume Analyzer/resumeAnalyzer.dart'; // Import the ResumeAnalyzer
+import 'Resume Builder/resumeBuilder.dart'; // Import the ResumeBuilder
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
@@ -39,24 +41,10 @@ class _MainPageState extends State<MainPage> {
       body: SafeArea(
         child: Column(
           children: [
-            // App bar with title
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
-                children: [
-                  Text(
-                    'ResuMaker',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: AppColor.text,
-                    ),
-                  ),
-                ],
-              ),
+            // Use the Header widget with capital H
+            const Header(
+              showBackButton: false,
             ),
-            
-            
             
             // Page content
             Expanded(
@@ -71,23 +59,13 @@ class _MainPageState extends State<MainPage> {
                   // Resume Builder Page
                   Container(
                     color: AppColor.background,
-                    child: Center(
-                      child: Text(
-                        'Resume Builder',
-                        style: TextStyle(color: AppColor.text, fontSize: 24),
-                      ),
-                    ),
+                    child: const ResumeBuilder(),
                   ),
                   
-                  // Resume Analyzer Page
+                  // Resume Analyzer Page - Replace placeholder with actual component
                   Container(
                     color: AppColor.background,
-                    child: Center(
-                      child: Text(
-                        'Resume Analyzer',
-                        style: TextStyle(color: AppColor.text, fontSize: 24),
-                      ),
-                    ),
+                    child: const ResumeAnalyzer(),
                   ),
                 ],
               ),
