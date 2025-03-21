@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
+import '../../app_assets.dart';
 import '../../app_color.dart';
 import 'FormBuilders/CustomSection.dart';
 import 'FormBuilders/Education.dart';
@@ -238,26 +240,43 @@ class _ResumeBuilderState extends State<ResumeBuilder> {
                     ),
                   )
                 else
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      // Logic for creating/downloading PDF
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            'Resume saved as PDF!',
-                            style: TextStyle(color: AppColor.text),
-                          ),
-                          backgroundColor: AppColor.card,
-                        ),
-                      );
-                    },
-                    icon: const Icon(Icons.download),
-                    label: const Text("Download PDF"),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColor.accent,
-                      foregroundColor: AppColor.text,
+                  Column(
+                  children: [
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        // Logic for saving the PDF to the database
+                        print('Saving resume data: $_resumeData');
+                      },
+                      icon: SvgPicture.asset(
+                        Assets.saveIcon,
+                        width: 24,
+                        height: 24,
+                      ),
+                      label: const Text("Save PDF"),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColor.accent,
+                        foregroundColor: AppColor.text,
+                      ),
                     ),
-                  ),
+                    // const SizedBox(width: 16),
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        // Logic for downloading the PDF
+                        print('Downloading PDF');
+                      },
+                      icon: SvgPicture.asset(
+                        Assets.downloadIcon,
+                        width: 24,
+                        height: 24,
+                      ),
+                      label: const Text("Download PDF"),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColor.accent,
+                        foregroundColor: AppColor.text,
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
