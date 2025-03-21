@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
 
 import '../../app_assets.dart';
 import '../../app_color.dart';
@@ -260,10 +262,7 @@ class _ResumeBuilderState extends State<ResumeBuilder> {
                     ),
                     // const SizedBox(width: 16),
                     ElevatedButton.icon(
-                      onPressed: () {
-                        // Logic for downloading the PDF
-                        print('Downloading PDF');
-                      },
+                      onPressed: _downloadPdf,
                       icon: SvgPicture.asset(
                         Assets.downloadIcon,
                         width: 24,
@@ -285,6 +284,185 @@ class _ResumeBuilderState extends State<ResumeBuilder> {
     );
   }
 
+  Future<void> _downloadPdf() async {
+    final pdfDoc = pw.Document();
+
+    pdfDoc.addPage(
+      pw.Page(
+        build: (pw.Context context) {
+          // Retrieve lists from resume data
+          final List<dynamic> educations = _resumeData['educationList'];
+          final List<dynamic> experiences = _resumeData['experienceList'];
+          final List<dynamic> customSections = _resumeData['customSections'];
+
+          return pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              // Personal Info
+              pw.Center(
+                child: pw.Text(
+                  _resumeData['personalInfo']['name']?.toString().isNotEmpty == true
+                      ? _resumeData['personalInfo']['name']
+                      : 'Your Name',
+                  style: pw.TextStyle(
+                    fontSize: 24,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                ),
+              ),
+              pw.SizedBox(height: 12),
+              pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.center,
+                children: [
+                  pw.Text(_resumeData['personalInfo']['email'] ?? 'email@example.com'),
+                  pw.Text(" | "),
+                  pw.Text(_resumeData['personalInfo']['phone'] ?? '(123) 456-7890'),
+                  pw.Text(" | "),
+                  pw.Text(_resumeData['personalInfo']['location'] ?? 'City, State'),
+                ],
+              ),
+              pw.SizedBox(height: 20),
+
+              // Education Section
+              pw.Text(
+                "Education",
+                style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
+              ),
+              pw.Divider(height: 5, thickness: 1),
+              pw.SizedBox(height: 4),
+              ...educations.map((edu) {
+                return pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Text(
+                      edu.school.isNotEmpty ? edu.school : 'University/School',
+                      style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold),
+                    ),
+                    pw.Text(
+                      (edu.degree.isNotEmpty || edu.fieldOfStudy.isNotEmpty)
+                          ? '${edu.degree} ${edu.fieldOfStudy}'.trim()
+                          : 'Degree & Field',
+                      style: pw.TextStyle(fontWeight: pw.FontWeight.normal),
+                    ),
+                    pw.Text(
+                      '${edu.startDate.isNotEmpty ? edu.startDate : 'Start Date'} - ${edu.endDate.isNotEmpty ? edu.endDate : 'End Date'}',
+                      style: pw.TextStyle(fontStyle: pw.FontStyle.italic, fontSize: 12),
+                    ),
+                    pw.SizedBox(height: 4),
+                    ...edu.bulletPoints.where((point) => point.isNotEmpty).map((point) {
+                      return pw.Row(
+                        crossAxisAlignment: pw.CrossAxisAlignment.start,
+                        children: [
+                          pw.Text('• ', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                          pw.Expanded(child: pw.Text(point)),
+                        ],
+                      );
+                    }).toList(),
+                    pw.SizedBox(height: 12),
+                  ],
+                );
+              }).toList(),
+
+              // Experience Section
+              pw.Text(
+                "Experience",
+                style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
+              ),
+              pw.Divider(height: 5, thickness: 1),
+              pw.SizedBox(height: 4),
+              ...experiences.map((exp) {
+                return pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Text(
+                      exp.title.isNotEmpty ? exp.title : 'Position',
+                      style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold),
+                    ),
+                    pw.Text(
+                      exp.company.isNotEmpty ? exp.company : 'Company',
+                      style: pw.TextStyle(fontWeight: pw.FontWeight.normal),
+                    ),
+                    pw.Text(
+                      '${exp.startDate.isNotEmpty ? exp.startDate : 'Start Date'} - ${exp.isCurrentPosition ? 'Present' : (exp.endDate.isNotEmpty ? exp.endDate : 'End Date')}',
+                      style: pw.TextStyle(fontStyle: pw.FontStyle.italic, fontSize: 12),
+                    ),
+                    pw.SizedBox(height: 4),
+                    ...exp.bulletPoints.where((point) => point.isNotEmpty).map((point) {
+                      return pw.Row(
+                        crossAxisAlignment: pw.CrossAxisAlignment.start,
+                        children: [
+                          pw.Text('• ', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                          pw.Expanded(child: pw.Text(point)),
+                        ],
+                      );
+                    }).toList(),
+                    pw.SizedBox(height: 12),
+                  ],
+                );
+              }).toList(),
+
+              // Custom Sections
+              ...customSections.map((section) {
+                // Skip empty sections
+                if (section.title.isEmpty && section.entries.every((entry) => entry.title.isEmpty)) {
+                  return pw.Container();
+                }
+                return pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Text(
+                      section.title.isNotEmpty ? section.title : 'Custom Section',
+                      style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
+                    ),
+                    pw.Divider(height: 5, thickness: 1),
+                    pw.SizedBox(height: 4),
+                    ...section.entries.map((entry) {
+                      // Skip empty entries
+                      if (entry.title.isEmpty && entry.bulletPoints.every((point) => point.isEmpty)) {
+                        return pw.Container();
+                      }
+                      return pw.Column(
+                        crossAxisAlignment: pw.CrossAxisAlignment.start,
+                        children: [
+                          if (entry.title.isNotEmpty)
+                            pw.Text(
+                              entry.title,
+                              style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold),
+                            ),
+                          if (entry.subtitle.isNotEmpty)
+                            pw.Text(entry.subtitle, style: pw.TextStyle(fontWeight: pw.FontWeight.normal)),
+                          if (entry.location.isNotEmpty)
+                            pw.Text(entry.location),
+                          pw.Text(
+                            '${entry.startDate.isNotEmpty ? entry.startDate : 'Start Date'} - ${entry.isCurrentPosition ? 'Present' : (entry.endDate.isNotEmpty ? entry.endDate : 'End Date')}',
+                            style: pw.TextStyle(fontStyle: pw.FontStyle.italic, fontSize: 12),
+                          ),
+                          pw.SizedBox(height: 4),
+                          ...entry.bulletPoints.where((point) => point.isNotEmpty).map((point) {
+                            return pw.Row(
+                              crossAxisAlignment: pw.CrossAxisAlignment.start,
+                              children: [
+                                pw.Text('• ', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                                pw.Expanded(child: pw.Text(point)),
+                              ],
+                            );
+                          }).toList(),
+                          pw.SizedBox(height: 12),
+                        ],
+                      );
+                    }).toList(),
+                    pw.SizedBox(height: 16),
+                  ],
+                );
+              }).toList(),
+            ],
+          );
+        },
+      ),
+    );
+
+    await Printing.sharePdf(bytes: await pdfDoc.save(), filename: 'resume.pdf');
+  }
   // Page 1: Resume Builder Form
   Widget _buildResumeFormPage() {
     return SingleChildScrollView(
