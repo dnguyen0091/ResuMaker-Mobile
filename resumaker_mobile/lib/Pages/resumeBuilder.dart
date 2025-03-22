@@ -95,7 +95,7 @@ class _ResumeBuilderState extends State<ResumeBuilder> {
     setState(() {
       (_resumeData['customSections'] as List<CustomSection>).add(
         CustomSection(
-          title: 'Custom Section',
+          title: 'TAP TO EDIT',
           entries: [
             CustomSectionEntry(
               id: 1,
@@ -525,16 +525,16 @@ class _ResumeBuilderState extends State<ResumeBuilder> {
             onChange: _updatePersonalInfo,
           ),
           
-          // Experience Form
-          Experience(
-            experienceList: List<ExperienceItem>.from(_resumeData['experienceList']),
-            setExperienceList: _updateExperienceList,
-          ),
-          
           // Education Form
           Education(
             educationList: List<EducationItem>.from(_resumeData['educationList']),
             setEducationList: _updateEducationList,
+          ),
+
+          // Experience Form
+          Experience(
+            experienceList: List<ExperienceItem>.from(_resumeData['experienceList']),
+            setExperienceList: _updateExperienceList,
           ),
           
           // Custom Sections (with remove buttons)
