@@ -55,7 +55,7 @@ class HomeScreen extends StatelessWidget {
             right: 115,
             child: ElevatedButton(
               onPressed: () {
-                Navigator.pushNamed(context, '/enter_user');
+                Navigator.pushNamed(context, '/main');
               },
               style: ElevatedButton.styleFrom(
                 minimumSize: const Size(200, 50),
