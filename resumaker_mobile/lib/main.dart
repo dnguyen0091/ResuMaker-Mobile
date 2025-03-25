@@ -1,9 +1,17 @@
+import 'package:device_preview/device_preview.dart';
 import 'package:flutter/material.dart';
 
+import 'Forms/login.dart';
+import 'Forms/register.dart';
+import 'Pages/enter_user.dart';
 import 'Pages/home.dart';
+import 'Pages/mainPage.dart';
+import 'app_color.dart';
+
 
 void main() {
-  runApp(const MyApp());
+  runApp(DevicePreview(builder: (context) => const MyApp())); //helps with displaying demo of app on different devices
+  // runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -15,14 +23,20 @@ class MyApp extends StatelessWidget {
       title: 'Flutter Demo',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color.fromARGB(255, 223, 223, 223),
+          seedColor: AppColor.primaryColor,
         ),
       ),
       // Define routes and set the initial route
       initialRoute: '/',
       routes: {
-        '/': (context) => HomeScreen(), // HomeScreen from home.dart
+        
+        // '/': (context) => MainPage(), 
+        '/': (context) => HomeScreen(), // HomeScreen from home.dart,
         '/second': (context) => const SecondScreen(), // Example additional page
+        '/enter_user': (context) => EnterUser(), // EnterUser from enter_user.dart
+        '/login': (context) => LoginUser(), // EnterUser from enter_user.dart
+        '/register': (context) => RegisterUser(), // EnterUser from enter_user.dartWW
+        '/main': (context) => MainPage(), // MainPage from mainPage.dart
       },
     );
   }
