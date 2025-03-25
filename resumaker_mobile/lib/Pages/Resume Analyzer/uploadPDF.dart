@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
 
 import '../../app_color.dart'; // Import app color scheme
 
@@ -22,14 +23,11 @@ class _UploadPDFState extends State<UploadPDF> {
 
   Future<void> _pickFile() async {
     try {
-      // Set isUploading true just before starting the process
       setState(() {
         isUploading = true;
       });
       
       FilePickerResult? result;
-      
-      // Try to pick file with more defensive programming
       try {
         result = await FilePicker.platform.pickFiles(
           type: FileType.custom,
@@ -37,23 +35,20 @@ class _UploadPDFState extends State<UploadPDF> {
         );
       } catch (e) {
         print("Error picking file: $e");
-        // If there's an error, create a mock result for development
         if (kIsWeb || Platform.isAndroid || Platform.isIOS) {
-          // This is just for testing - in production remove this mock
-          // Mock a successful file pick for testing
+          // Mock data for development purposes
           setState(() {
             fileName = "sample_resume.pdf";
             isUploading = true;
           });
           
-          // Mock data - replace with actual API call results
           await Future.delayed(const Duration(milliseconds: 1500));
           
           final analysisResults = {
             'fileName': "sample_resume.pdf",
-            'fileSize': 1024 * 1024, // 1MB mock
+            'fileSize': 1024 * 1024,
             'uploadDate': DateTime.now().toIso8601String(),
-            'filePath': null, // Mock path
+            'filePath': null,
             'score': 78,
             'keywordMatch': 85,
             'formatting': 72,
@@ -65,7 +60,6 @@ class _UploadPDFState extends State<UploadPDF> {
             ]
           };
           
-          // Call the callback with the results
           widget.onUploadSuccess(analysisResults);
           
           setState(() {
@@ -73,12 +67,10 @@ class _UploadPDFState extends State<UploadPDF> {
           });
           return;
         } else {
-          // If not on supported platform and not in debug mode, show error
           throw e;
         }
       }
 
-      // Normal flow if picker works
       if (result == null || result.files.isEmpty) {
         setState(() {
           isUploading = false;
@@ -91,18 +83,29 @@ class _UploadPDFState extends State<UploadPDF> {
       setState(() {
         fileName = file.name;
       });
-
-      // Here you would typically upload the file to your server
-      // For now, we'll simulate with a delay
+      
+      String? savedFilePath;
+      // For mobile/desktop, copy the file to the app's document directory:
+      if (!kIsWeb && file.path != null) {
+        final File pickedFile = File(file.path!);
+        Directory appDocDir = await getApplicationDocumentsDirectory();
+        final String newPath = "${appDocDir.path}/${file.name}";
+        final savedFile = await pickedFile.copy(newPath);
+        savedFilePath = savedFile.path;
+      } else {
+        // For web or when file.path isn't available:
+        savedFilePath = file.path;
+      }
+      
+      // Simulate an upload delay or analysis delay:
       await Future.delayed(const Duration(milliseconds: 1500));
 
-      // Mock data - replace with actual API call results
       final analysisResults = {
         'fileName': file.name,
         'fileSize': file.size,
         'uploadDate': DateTime.now().toIso8601String(),
-        'filePath': file.path, // Path to the file for preview
-        // Additional analysis data would go here
+        'filePath': savedFilePath,
+        // Additional analysis results here.
         'score': 78,
         'keywordMatch': 85,
         'formatting': 72,
@@ -114,7 +117,6 @@ class _UploadPDFState extends State<UploadPDF> {
         ]
       };
 
-      // Call the callback with the results
       widget.onUploadSuccess(analysisResults);
       
       setState(() {
@@ -125,7 +127,6 @@ class _UploadPDFState extends State<UploadPDF> {
       setState(() {
         isUploading = false;
       });
-      // Handle errors
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pdfx/pdfx.dart';
 
 import '../../app_color.dart';
 
@@ -61,44 +62,42 @@ class Results extends StatelessWidget {
   }
   
   Widget _buildResumePreviewSection() {
-    return Card(
-      color: AppColor.card,
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-        side: const BorderSide(color: AppColor.border, width: 0.5),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Center(
-              child: Text(
-                "Your Resume",
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: AppColor.text
-                ),
-              )
-            ),
-            const SizedBox(height: 16),
-            
-            // PDF Container - in a real app, you'd use a PDF viewer plugin
-            Container(
-              height: 200,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: AppColor.userBubble,
-                border: Border.all(color: AppColor.border),
-                borderRadius: BorderRadius.circular(8),
+  return Card(
+    color: AppColor.card,
+    elevation: 2,
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(8),
+      side: const BorderSide(color: AppColor.border, width: 0.5),
+    ),
+    child: Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Center(
+            child: Text(
+              "Your Resume",
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: AppColor.text,
               ),
-              child: results['filePath'] != null
-                ? Center(
-                    child: Text(
-                      "PDF Preview would appear here",
-                      style: TextStyle(color: AppColor.secondaryText),
+            ),
+          ),
+          const SizedBox(height: 16),
+          // PDF Container - displays the PDF file if available
+          Container(
+            height: 200,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: AppColor.userBubble,
+              border: Border.all(color: AppColor.border),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: results['filePath'] != null
+                ? PdfView(
+                    controller: PdfController(
+                      document: PdfDocument.openFile(results['filePath']),
                     ),
                   )
                 : Center(
@@ -107,39 +106,37 @@ class Results extends StatelessWidget {
                       style: TextStyle(color: AppColor.secondaryText),
                     ),
                   ),
-            ),
-            
-            const SizedBox(height: 16),
-            
-            // File Info
-            Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "File: ${results['fileName'] ?? 'Unknown'}",
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w500,
-                          color: AppColor.text,
-                        ),
+          ),
+          const SizedBox(height: 16),
+          // File Info
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "File: ${results['fileName'] ?? 'Unknown'}",
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w500,
+                        color: AppColor.text,
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        "Uploaded: ${_formatDate(results['uploadDate'])}",
-                        style: const TextStyle(color: AppColor.secondaryText),
-                      ),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      "Uploaded: ${_formatDate(results['uploadDate'])}",
+                      style: const TextStyle(color: AppColor.secondaryText),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          ],
-        ),
+              ),
+            ],
+          ),
+        ],
       ),
-    );
-  }
+    ),
+  );
+}
   
   Widget _buildAnalysisSection() {
     return Card(
