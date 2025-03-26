@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
 
 import '../../app_color.dart';
 import './PDFActions.dart'; // Ensure PdfActionButtons is imported
@@ -257,161 +260,267 @@ class _ResumeBuilderState extends State<ResumeBuilder> {
     );
   }
 
-  Future<void> _downloadPdf() async {
-    final pdfDoc = pw.Document();
+  // Method 1: Generate the PDF document
+Future<pw.Document> _generatePdf() async {
+  final pdfDoc = pw.Document();
 
-    pdfDoc.addPage(
-      pw.Page(
-        build: (pw.Context context) {
-          // Retrieve lists from resume data
-          final List<dynamic> educations = _resumeData['educationList'];
-          final List<dynamic> experiences = _resumeData['experienceList'];
-          final List<dynamic> customSections = _resumeData['customSections'];
+  pdfDoc.addPage(
+    pw.MultiPage(
+      pageFormat: PdfPageFormat.a4,
+      margin: const pw.EdgeInsets.all(24),
+      build: (pw.Context context) {
+        // Retrieve resume sections from _resumeData
+        final personalInfo = _resumeData['personalInfo'];
+        final List<dynamic> educations = _resumeData['educationList'];
+        final List<dynamic> experiences = _resumeData['experienceList'];
+        final List<dynamic> customSections = _resumeData['customSections'];
 
-          return pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.start,
-            children: [
-              // Personal Info
-              pw.Center(
-                child: pw.Text(
-                  _resumeData['personalInfo']['name']?.toString().isNotEmpty == true
-                      ? _resumeData['personalInfo']['name']
-                      : 'Your Name',
-                  style: pw.TextStyle(
-                    fontSize: 24,
-                    fontWeight: pw.FontWeight.bold,
-                  ),
-                ),
+        return <pw.Widget>[
+          // Personal Info Header
+          pw.Center(
+            child: pw.Text(
+              personalInfo['name']?.toString().isNotEmpty == true
+                  ? personalInfo['name']
+                  : 'Your Name',
+              style: pw.TextStyle(
+                fontSize: 24,
+                fontWeight: pw.FontWeight.bold,
               ),
-              pw.SizedBox(height: 12),
-              pw.Row(
-                mainAxisAlignment: pw.MainAxisAlignment.center,
+            ),
+          ),
+          pw.SizedBox(height: 12),
+          pw.Row(
+            mainAxisAlignment: pw.MainAxisAlignment.center,
+            children: [
+              pw.Text(personalInfo['email'] ?? 'email@example.com'),
+              pw.Text(" | "),
+              pw.Text(personalInfo['phone'] ?? '(123) 456-7890'),
+              pw.Text(" | "),
+              pw.Text(personalInfo['location'] ?? 'City, State'),
+            ],
+          ),
+          pw.SizedBox(height: 20),
+
+          // Education Section
+          pw.Text(
+            "Education",
+            style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
+          ),
+          pw.Divider(height: 4, thickness: 1),
+          pw.SizedBox(height: 4),
+          ...educations.map((edu) {
+            // Handle null or empty values safely
+            String school = '';
+            String degree = '';
+            String fieldOfStudy = '';
+            String startDate = '';
+            String endDate = '';
+            List<String> bulletPoints = [];
+            
+            try {
+              school = edu.school ?? '';
+              degree = edu.degree ?? '';
+              fieldOfStudy = edu.fieldOfStudy ?? '';
+              startDate = edu.startDate ?? '';
+              endDate = edu.endDate ?? '';
+              
+              // Handle bulletPoints safely
+              if (edu.bulletPoints != null) {
+                bulletPoints = List<String>.from(
+                  edu.bulletPoints.map((point) => point?.toString() ?? '').toList()
+                );
+              }
+            } catch (e) {
+              print("Error processing education: $e");
+            }
+            
+            return pw.Padding(
+              padding: const pw.EdgeInsets.only(bottom: 12),
+              child: pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [
-                  pw.Text(_resumeData['personalInfo']['email'] ?? 'email@example.com'),
-                  pw.Text(" | "),
-                  pw.Text(_resumeData['personalInfo']['phone'] ?? '(123) 456-7890'),
-                  pw.Text(" | "),
-                  pw.Text(_resumeData['personalInfo']['location'] ?? 'City, State'),
+                  pw.Text(
+                    school.isNotEmpty ? school : 'University/School',
+                    style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold),
+                  ),
+                  pw.Text(
+                    (degree.isNotEmpty || fieldOfStudy.isNotEmpty)
+                        ? '${degree} ${fieldOfStudy}'.trim()
+                        : 'Degree & Field',
+                    style: pw.TextStyle(fontWeight: pw.FontWeight.normal),
+                  ),
+                  pw.Text(
+                    '${startDate.isNotEmpty ? startDate : 'Start Date'} - ${endDate.isNotEmpty ? endDate : 'End Date'}',
+                    style: pw.TextStyle(fontStyle: pw.FontStyle.italic, fontSize: 12),
+                  ),
+                  pw.SizedBox(height: 4),
+                  ...bulletPoints.where((point) => point.isNotEmpty).map((point) {
+                    return pw.Row(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                      children: [
+                        pw.Text('• ', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                        pw.Expanded(child: pw.Text(point)),
+                      ],
+                    );
+                  }).toList(),
                 ],
               ),
-              pw.SizedBox(height: 20),
+            );
+          }).toList(),
 
-              // Education Section
-              pw.Text(
-                "Education",
-                style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
-              ),
-              pw.Divider(height: 5, thickness: 1),
-              pw.SizedBox(height: 4),
-              ...educations.map((edu) {
-                return pw.Column(
-                  crossAxisAlignment: pw.CrossAxisAlignment.start,
-                  children: [
-                    pw.Text(
-                      edu.school.isNotEmpty ? edu.school : 'University/School',
-                      style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold),
-                    ),
-                    pw.Text(
-                      (edu.degree.isNotEmpty || edu.fieldOfStudy.isNotEmpty)
-                          ? '${edu.degree} ${edu.fieldOfStudy}'.trim()
-                          : 'Degree & Field',
-                      style: pw.TextStyle(fontWeight: pw.FontWeight.normal),
-                    ),
-                    pw.Text(
-                      '${edu.startDate.isNotEmpty ? edu.startDate : 'Start Date'} - ${edu.endDate.isNotEmpty ? edu.endDate : 'End Date'}',
-                      style: pw.TextStyle(fontStyle: pw.FontStyle.italic, fontSize: 12),
-                    ),
-                    pw.SizedBox(height: 4),
-                    ...edu.bulletPoints.where((point) => point.isNotEmpty).map((point) {
-                      return pw.Row(
-                        crossAxisAlignment: pw.CrossAxisAlignment.start,
-                        children: [
-                          pw.Text('• ', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-                          pw.Expanded(child: pw.Text(point)),
-                        ],
-                      );
-                    }).toList(),
-                    pw.SizedBox(height: 12),
-                  ],
+          // Experience Section
+          pw.SizedBox(height: 20),
+          pw.Text(
+            "Experience",
+            style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
+          ),
+          pw.Divider(height: 4, thickness: 1),
+          pw.SizedBox(height: 4),
+          ...experiences.map((exp) {
+            // Handle null or empty values safely
+            String title = '';
+            String company = '';
+            String startDate = '';
+            String endDate = '';
+            bool isCurrentPosition = false;
+            List<String> bulletPoints = [];
+            
+            try {
+              title = exp.title ?? '';
+              company = exp.company ?? '';
+              startDate = exp.startDate ?? '';
+              endDate = exp.endDate ?? '';
+              isCurrentPosition = exp.isCurrentPosition ?? false;
+              
+              // Handle bulletPoints safely
+              if (exp.bulletPoints != null) {
+                bulletPoints = List<String>.from(
+                  exp.bulletPoints.map((point) => point?.toString() ?? '').toList()
                 );
-              }).toList(),
-
-              // Experience Section
-              pw.Text(
-                "Experience",
-                style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
+              }
+            } catch (e) {
+              print("Error processing experience: $e");
+            }
+            
+            return pw.Padding(
+              padding: const pw.EdgeInsets.only(bottom: 12),
+              child: pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  pw.Text(
+                    title.isNotEmpty ? title : 'Position',
+                    style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold),
+                  ),
+                  pw.Text(
+                    company.isNotEmpty ? company : 'Company',
+                    style: pw.TextStyle(fontWeight: pw.FontWeight.normal),
+                  ),
+                  pw.Text(
+                    '${startDate.isNotEmpty ? startDate : 'Start Date'} - ${isCurrentPosition ? 'Present' : (endDate.isNotEmpty ? endDate : 'End Date')}',
+                    style: pw.TextStyle(fontStyle: pw.FontStyle.italic, fontSize: 12),
+                  ),
+                  pw.SizedBox(height: 4),
+                  ...bulletPoints.where((point) => point.isNotEmpty).map((point) {
+                    return pw.Row(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                      children: [
+                        pw.Text('• ', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                        pw.Expanded(child: pw.Text(point)),
+                      ],
+                    );
+                  }).toList(),
+                ],
               ),
-              pw.Divider(height: 5, thickness: 1),
-              pw.SizedBox(height: 4),
-              ...experiences.map((exp) {
-                return pw.Column(
-                  crossAxisAlignment: pw.CrossAxisAlignment.start,
-                  children: [
-                    pw.Text(
-                      exp.title.isNotEmpty ? exp.title : 'Position',
-                      style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold),
-                    ),
-                    pw.Text(
-                      exp.company.isNotEmpty ? exp.company : 'Company',
-                      style: pw.TextStyle(fontWeight: pw.FontWeight.normal),
-                    ),
-                    pw.Text(
-                      '${exp.startDate.isNotEmpty ? exp.startDate : 'Start Date'} - ${exp.isCurrentPosition ? 'Present' : (exp.endDate.isNotEmpty ? exp.endDate : 'End Date')}',
-                      style: pw.TextStyle(fontStyle: pw.FontStyle.italic, fontSize: 12),
-                    ),
-                    pw.SizedBox(height: 4),
-                    ...exp.bulletPoints.where((point) => point.isNotEmpty).map((point) {
-                      return pw.Row(
-                        crossAxisAlignment: pw.CrossAxisAlignment.start,
-                        children: [
-                          pw.Text('• ', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-                          pw.Expanded(child: pw.Text(point)),
-                        ],
-                      );
-                    }).toList(),
-                    pw.SizedBox(height: 12),
-                  ],
-                );
-              }).toList(),
+            );
+          }).toList(),
 
-              // Custom Sections
-              ...customSections.map((section) {
-                // Skip empty sections
-                if (section.title.isEmpty && section.entries.every((entry) => entry.title.isEmpty)) {
-                  return pw.Container();
-                }
-                return pw.Column(
-                  crossAxisAlignment: pw.CrossAxisAlignment.start,
-                  children: [
-                    pw.Text(
-                      section.title.isNotEmpty ? section.title : 'Custom Section',
-                      style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
-                    ),
-                    pw.Divider(height: 5, thickness: 1),
-                    pw.SizedBox(height: 4),
-                    ...section.entries.map((entry) {
-                      // Skip empty entries
-                      if (entry.title.isEmpty && entry.bulletPoints.every((point) => point.isEmpty)) {
-                        return pw.Container();
+          // Custom Sections
+          pw.SizedBox(height: 20),
+          ...customSections.map((section) {
+            // Handle null or empty values safely
+            String title = '';
+            List<dynamic> entries = [];
+            
+            try {
+              title = section.title ?? '';
+              entries = section.entries ?? [];
+            } catch (e) {
+              print("Error processing custom section: $e");
+            }
+            
+            if (title.isEmpty && entries.every((entry) {
+              try {
+                return entry.title?.isEmpty ?? true;
+              } catch (e) {
+                return true;
+              }
+            })) {
+              return pw.Container();
+            }
+            
+            return pw.Padding(
+              padding: const pw.EdgeInsets.only(bottom: 16),
+              child: pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  pw.Text(
+                    title.isNotEmpty ? title : 'Custom Section',
+                    style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
+                  ),
+                  pw.Divider(height: 4, thickness: 1),
+                  pw.SizedBox(height: 4),
+                  ...entries.map((entry) {
+                    // Handle null or empty values safely
+                    String entryTitle = '';
+                    String subtitle = '';
+                    String location = '';
+                    String startDate = '';
+                    String endDate = '';
+                    bool isCurrentPosition = false;
+                    List<String> bulletPoints = [];
+                    
+                    try {
+                      entryTitle = entry.title ?? '';
+                      subtitle = entry.subtitle ?? '';
+                      location = entry.location ?? '';
+                      startDate = entry.startDate ?? '';
+                      endDate = entry.endDate ?? '';
+                      isCurrentPosition = entry.isCurrentPosition ?? false;
+                      
+                      // Handle bulletPoints safely
+                      if (entry.bulletPoints != null) {
+                        bulletPoints = List<String>.from(
+                          entry.bulletPoints.map((point) => point?.toString() ?? '').toList()
+                        );
                       }
-                      return pw.Column(
+                    } catch (e) {
+                      print("Error processing custom section entry: $e");
+                    }
+                    
+                    if (entryTitle.isEmpty && bulletPoints.every((point) => point.isEmpty)) {
+                      return pw.Container();
+                    }
+                    
+                    return pw.Padding(
+                      padding: const pw.EdgeInsets.only(bottom: 12),
+                      child: pw.Column(
                         crossAxisAlignment: pw.CrossAxisAlignment.start,
                         children: [
-                          if (entry.title.isNotEmpty)
+                          if (entryTitle.isNotEmpty)
                             pw.Text(
-                              entry.title,
+                              entryTitle,
                               style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold),
                             ),
-                          if (entry.subtitle.isNotEmpty)
-                            pw.Text(entry.subtitle, style: pw.TextStyle(fontWeight: pw.FontWeight.normal)),
-                          if (entry.location.isNotEmpty)
-                            pw.Text(entry.location),
+                          if (subtitle.isNotEmpty)
+                            pw.Text(subtitle, style: pw.TextStyle(fontWeight: pw.FontWeight.normal)),
+                          if (location.isNotEmpty)
+                            pw.Text(location),
                           pw.Text(
-                            '${entry.startDate.isNotEmpty ? entry.startDate : 'Start Date'} - ${entry.isCurrentPosition ? 'Present' : (entry.endDate.isNotEmpty ? entry.endDate : 'End Date')}',
+                            '${startDate.isNotEmpty ? startDate : 'Start Date'} - ${isCurrentPosition ? 'Present' : (endDate.isNotEmpty ? endDate : 'End Date')}',
                             style: pw.TextStyle(fontStyle: pw.FontStyle.italic, fontSize: 12),
                           ),
                           pw.SizedBox(height: 4),
-                          ...entry.bulletPoints.where((point) => point.isNotEmpty).map((point) {
+                          ...bulletPoints.where((point) => point.isNotEmpty).map((point) {
                             return pw.Row(
                               crossAxisAlignment: pw.CrossAxisAlignment.start,
                               children: [
@@ -420,21 +529,71 @@ class _ResumeBuilderState extends State<ResumeBuilder> {
                               ],
                             );
                           }).toList(),
-                          pw.SizedBox(height: 12),
                         ],
-                      );
-                    }).toList(),
-                    pw.SizedBox(height: 16),
-                  ],
-                );
-              }).toList(),
-            ],
-          );
-        },
+                      ),
+                    );
+                  }).toList(),
+                ],
+              ),
+            );
+          }).toList(),
+        ];
+      },
+    ),
+  );
+  
+  return pdfDoc;
+}
+
+
+Future<void> _savePdfToDevice(pw.Document pdfDoc) async {
+  try {
+    // Generate the PDF bytes
+    final bytes = await pdfDoc.save();
+    // Use path_provider to get the app's documents directory
+    final directory = await getApplicationDocumentsDirectory();
+    final fileName = 'resume_${DateTime.now().millisecondsSinceEpoch}.pdf';
+    final filePath = '${directory.path}/$fileName';
+    final file = File(filePath);
+    // Write the PDF bytes to file
+    await file.writeAsBytes(bytes);
+    
+    // Print the path for debugging and show a success message
+    print('PDF saved successfully at: $filePath');
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('PDF saved successfully! \nPath: $filePath'),
+        duration: const Duration(seconds: 5),
       ),
     );
+  } catch (e) {
+    print('Error while saving PDF: $e');
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Error saving PDF: ${e.toString()}'),
+        duration: const Duration(seconds: 5),
+      ),
+    );
+  }
+}
 
-    await Printing.sharePdf(bytes: await pdfDoc.save(), filename: 'resume.pdf');
+  // Method to call in your UI that combines both methods
+  Future<void> _downloadPdf() async {
+    try {
+      // First generate the PDF
+      final pdfDoc = await _generatePdf();
+      
+      // Then save it to the device
+      await _savePdfToDevice(pdfDoc);
+    } catch (e) {
+      print('Error in PDF download process: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error generating PDF: ${e.toString()}'),
+          duration: const Duration(seconds: 5),
+        ),
+      );
+    }
   }
   // Page 1: Resume Builder Form
   Widget _buildResumeFormPage() {
