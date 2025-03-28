@@ -1,6 +1,8 @@
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
 import '../../../app_color.dart';
 
@@ -72,7 +74,7 @@ class _ExperienceState extends State<Experience> {
   }
 
   // AI review function for experience
-  void _reviewAI(int experienceId) {
+  Future<void> _reviewAI(int experienceId) async {
     // Set the reviewing state to show loading indicator
     setState(() {
       reviewingId = experienceId;
@@ -80,35 +82,94 @@ class _ExperienceState extends State<Experience> {
     
     final experience = widget.experienceList.firstWhere((item) => item.id == experienceId);
     
-    // Simulate AI generation (replace with actual API call)
-    Future.delayed(const Duration(milliseconds: 1500), () {
-      if (!mounted) return;
+    try {
+      const apiUrl = 'https://resumaker-api.onrender.com';
       
-      // Example AI-generated content based on the existing entry
-      final title = experience.title.isNotEmpty ? experience.title : "position";
-      final company = experience.company.isNotEmpty ? experience.company : "company";
+      // Create the request body with all experience details
+      final requestBody = jsonEncode({
+        'id': experience.id,
+        'title': experience.title,
+        'company': experience.company,
+        'location': experience.location,
+        'startDate': experience.startDate,
+        'endDate': experience.endDate,
+        'isCurrentPosition': experience.isCurrentPosition,
+        'bulletPoints': experience.bulletPoints,
+      });
       
-      // Update the entry with AI suggestions
-      final updatedList = widget.experienceList.map((item) {
-        if (item.id == experienceId) {
-          return item.copyWith(
-            bulletPoints: [
-              "Led key initiatives that increased efficiency by 25% for $company's core processes",
-              "Collaborated with cross-functional teams to deliver projects on time and within budget",
-              "Implemented innovative solutions that gained recognition from senior leadership"
-            ]
+      // Make API request
+      final response = await http.post(
+        Uri.parse('$apiUrl/api/ai/generate-experience-bullets'),
+        headers: {'Content-Type': 'application/json'},
+        body: requestBody,
+      );
+      
+      if (response.statusCode != 200) {
+        throw Exception('Server error: ${response.statusCode}');
+      }
+      
+      // Parse the response to get generated bullets
+      final data = jsonDecode(response.body);
+      
+      if (data['bullets'] != null && data['bullets'] is List) {
+        // Get the bullets from response
+        final List<dynamic> generatedBullets = data['bullets'];
+        
+        // Only update if we actually got content back
+        if (generatedBullets.isNotEmpty) {
+          // Copy the current bullet points
+          final List<String> updatedBulletPoints = List<String>.from(experience.bulletPoints);
+          
+          // Update bullet points with generated content
+          for (int i = 0; i < generatedBullets.length && i < 3; i++) {
+            // Only update if there's content
+            if (generatedBullets[i] != null && generatedBullets[i].toString().isNotEmpty) {
+              updatedBulletPoints[i] = generatedBullets[i].toString();
+            }
+          }
+          
+          // Update the entry with AI suggestions
+          final updatedList = widget.experienceList.map((item) {
+            if (item.id == experienceId) {
+              return item.copyWith(bulletPoints: updatedBulletPoints);
+            }
+            return item;
+          }).toList();
+          
+          widget.setExperienceList(updatedList);
+        } else {
+          // Show a message that generation provided no results
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Unable to generate content. Please check your experience details.'),
+              backgroundColor: Colors.orange,
+            ),
           );
         }
-        return item;
-      }).toList();
+      } else {
+        // API returned success but not in expected format
+        throw Exception('Invalid response format from AI service');
+      }
       
-      widget.setExperienceList(updatedList);
+    } catch (e) {
+      print('Error generating AI content: $e');
       
+      // Show error to the user without adding placeholders
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to generate content: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      
+    } finally {
       // Clear the reviewing state
-      setState(() {
-        reviewingId = null;
-      });
-    });
+      if (mounted) {
+        setState(() {
+          reviewingId = null;
+        });
+      }
+    }
   }
   
   // Add a new experience entry

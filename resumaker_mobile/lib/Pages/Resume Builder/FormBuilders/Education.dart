@@ -1,6 +1,8 @@
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
 import '../../../app_color.dart';
 
@@ -72,7 +74,7 @@ class _EducationState extends State<Education> {
   }
 
   // AI review function for education
-  void _reviewAI(int educationId) {
+  Future<void> _reviewAI(int educationId) async {
     // Set the reviewing state to show loading indicator
     setState(() {
       reviewingId = educationId;
@@ -80,34 +82,94 @@ class _EducationState extends State<Education> {
     
     final education = widget.educationList.firstWhere((item) => item.id == educationId);
     
-    // Simulate AI generation (replace with actual API call)
-    Future.delayed(const Duration(milliseconds: 1500), () {
-      if (!mounted) return;
+    try {
+      const apiUrl = 'https://resumaker-api.onrender.com';
       
-      // Example AI-generated content based on the existing entry
-      final school = education.school.isNotEmpty ? education.school : "university";
-      final degree = education.degree.isNotEmpty ? education.degree : "degree";
+      // Create the request body with all education details
+      final requestBody = jsonEncode({
+        'id': education.id,
+        'school': education.school,
+        'location': education.location,
+        'degree': education.degree,
+        'fieldOfStudy': education.fieldOfStudy,
+        'startDate': education.startDate,
+        'endDate': education.endDate,
+        'bulletPoints': education.bulletPoints,
+      });
       
-      // Update the entry with AI suggestions
-      final updatedList = widget.educationList.map((item) {
-        if (item.id == educationId) {
-          return item.copyWith(
-            bulletPoints: [
-              "Dean's List for academic excellence, maintaining a GPA above 3.8",
-              "Active member of the ${item.fieldOfStudy} Student Association, participating in research and community outreach",
-            ]
+      // Make API request
+      final response = await http.post(
+        Uri.parse('$apiUrl/api/ai/generate-education-bullets'),
+        headers: {'Content-Type': 'application/json'},
+        body: requestBody,
+      );
+      
+      if (response.statusCode != 200) {
+        throw Exception('Server error: ${response.statusCode}');
+      }
+      
+      // Parse the response to get generated bullets
+      final data = jsonDecode(response.body);
+      
+      if (data['bullets'] != null && data['bullets'] is List) {
+        // Get the bullets from response
+        final List<dynamic> generatedBullets = data['bullets'];
+        
+        // Only update if we actually got content back
+        if (generatedBullets.isNotEmpty) {
+          // Copy the current bullet points
+          final List<String> updatedBulletPoints = List<String>.from(education.bulletPoints);
+          
+          // Update bullet points with generated content
+          for (int i = 0; i < generatedBullets.length && i < updatedBulletPoints.length; i++) {
+            // Only update if there's content
+            if (generatedBullets[i] != null && generatedBullets[i].toString().isNotEmpty) {
+              updatedBulletPoints[i] = generatedBullets[i].toString();
+            }
+          }
+          
+          // Update the entry with AI suggestions
+          final updatedList = widget.educationList.map((item) {
+            if (item.id == educationId) {
+              return item.copyWith(bulletPoints: updatedBulletPoints);
+            }
+            return item;
+          }).toList();
+          
+          widget.setEducationList(updatedList);
+        } else {
+          // Show a message that generation provided no results
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Unable to generate content. Please provide more details about your education.'),
+              backgroundColor: Colors.orange,
+            ),
           );
         }
-        return item;
-      }).toList();
+      } else {
+        // API returned success but not in expected format
+        throw Exception('Invalid response format from AI service');
+      }
       
-      widget.setEducationList(updatedList);
+    } catch (e) {
+      print('Error generating AI content: $e');
       
+      // Show error to the user
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to generate content: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      
+    } finally {
       // Clear the reviewing state
-      setState(() {
-        reviewingId = null;
-      });
-    });
+      if (mounted) {
+        setState(() {
+          reviewingId = null;
+        });
+      }
+    }
   }
   
   // Add a new education entry

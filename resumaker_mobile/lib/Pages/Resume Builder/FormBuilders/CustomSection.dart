@@ -1,6 +1,8 @@
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
 import '../../../app_color.dart';
 
@@ -102,52 +104,64 @@ class _CustomSectionFormState extends State<CustomSectionForm> {
   }
 
   // AI review function for items
-  void _reviewAI(int entryId) {
-    // Set the reviewing state to show loading indicator
-    setState(() {
-      reviewingId = entryId;
+Future<void> _reviewAI(int entryId) async {
+  // Set the reviewing state to show loading indicator
+  setState(() {
+    reviewingId = entryId;
+  });
+  
+  final entry = widget.section.entries.firstWhere((item) => item.id == entryId);
+  
+  try {
+    const apiUrl = 'https://resumaker-api.onrender.com';
+    
+    // Create the request body - similar to your JavaScript version
+    final requestBody = jsonEncode({
+      'id': entry.id,
+      'title': entry.title,
+      'subtitle': entry.subtitle,
+      'location': entry.location,
+      'startDate': entry.startDate,
+      'endDate': entry.endDate,
+      'isCurrentPosition': entry.isCurrentPosition,
+      'bulletPoints': entry.bulletPoints,
+      // If your API expects the section title as well
+      'sectionTitle': widget.section.title
     });
     
-    final entry = widget.section.entries.firstWhere((item) => item.id == entryId);
-    final sectionType = widget.section.title.toLowerCase();
+    // Make API request
+    final response = await http.post(
+      Uri.parse('$apiUrl/api/ai/generate-custom-bullets'),
+      headers: {'Content-Type': 'application/json'},
+      body: requestBody,
+    );
     
-    // Simulate AI generation (replace with actual API call)
-    Future.delayed(const Duration(milliseconds: 1500), () {
-      if (!mounted) return;
+    if (response.statusCode != 200) {
+      throw Exception('Server error: ${response.statusCode}');
+    }
+    
+    // Parse the response to get generated bullets
+    final data = jsonDecode(response.body);
+    
+    if (data['bullets'] != null && data['bullets'] is List) {
+      // Get the bullets from response
+      final List<dynamic> generatedBullets = data['bullets'];
       
-      // Example AI-generated content based on the section title
-      List<String> generatedBulletPoints = [];
+      // Copy the current bullet points
+      final List<String> updatedBulletPoints = List<String>.from(entry.bulletPoints);
       
-      if (sectionType.contains('skill') || sectionType.contains('technical')) {
-        generatedBulletPoints = [
-          "Advanced proficiency in ${entry.title.isNotEmpty ? entry.title : 'relevant technologies'}",
-          "Applied ${entry.title.isNotEmpty ? entry.title : 'these skills'} to solve complex problems",
-          "Continuously learning and improving ${entry.title.isNotEmpty ? entry.title : 'skill set'}"
-        ];
-      } else if (sectionType.contains('project')) {
-        generatedBulletPoints = [
-          "Led development of ${entry.title.isNotEmpty ? entry.title : 'project'} that achieved significant metrics",
-          "Implemented innovative solutions to overcome technical challenges",
-          "Collaborated with team members to ensure timely delivery"
-        ];
-      } else if (sectionType.contains('volunteer') || sectionType.contains('community')) {
-        generatedBulletPoints = [
-          "Contributed over 100 hours to ${entry.title.isNotEmpty ? entry.title : 'this initiative'}",
-          "Helped organize events that benefited the local community",
-          "Received recognition for outstanding contributions"
-        ];
-      } else {
-        generatedBulletPoints = [
-          "Demonstrated excellence in ${entry.title.isNotEmpty ? entry.title : 'this area'}",
-          "Applied specialized knowledge to achieve measurable results",
-          "Received recognition for outstanding performance"
-        ];
+      // Update bullet points with generated content
+      for (int i = 0; i < generatedBullets.length && i < 3; i++) {
+        // Only update if there's content
+        if (generatedBullets[i] != null && generatedBullets[i].toString().isNotEmpty) {
+          updatedBulletPoints[i] = generatedBullets[i].toString();
+        }
       }
       
       // Update the entry with AI suggestions
       final updatedEntries = widget.section.entries.map((item) {
         if (item.id == entryId) {
-          return item.copyWith(bulletPoints: generatedBulletPoints);
+          return item.copyWith(bulletPoints: updatedBulletPoints);
         }
         return item;
       }).toList();
@@ -155,13 +169,28 @@ class _CustomSectionFormState extends State<CustomSectionForm> {
       widget.onChange(
         widget.section.copyWith(entries: updatedEntries),
       );
-      
-      // Clear the reviewing state
+    }
+    
+  } catch (e) {
+    print('Error generating AI content: $e');
+    
+    // Optionally show an error to the user
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Failed to generate AI content: ${e.toString()}'),
+        backgroundColor: Colors.red,
+      ),
+    );
+    
+  } finally {
+    // Clear the reviewing state
+    if (mounted) {
       setState(() {
         reviewingId = null;
       });
-    });
+    }
   }
+}
 
   // Add a new entry
   void _addEntry() {
