@@ -1,9 +1,12 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../app_color.dart';
 import './PDFActions.dart'; // Ensure PdfActionButtons is imported
@@ -248,7 +251,9 @@ class _ResumeBuilderState extends State<ResumeBuilder> {
                   PdfActionButtons(
                     onSave: () {
                       // Logic for saving the PDF to the database
-                      print('Saving resume data: $_resumeData');
+                      
+
+
                     },
                     onDownload: _downloadPdf,
                   ),
@@ -260,6 +265,95 @@ class _ResumeBuilderState extends State<ResumeBuilder> {
     );
   }
 
+Future<void> _savePdfToServer() async {
+  try {
+    // Show loading indicator
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Saving your resume...'),
+        duration: Duration(seconds: 2),
+      ),
+    );
+    
+    // First generate the PDF
+    final pdfDoc = await _generatePdf();
+    final bytes = await pdfDoc.save();
+    
+    // Get the user email from shared preferences
+    final prefs = await SharedPreferences.getInstance();
+    final userData = prefs.getString('user');
+    
+    if (userData == null) {
+      throw Exception('User data not found. Please log in again.');
+    }
+    
+    final user = jsonDecode(userData);
+    final String? email = user['email'];
+    
+    if (email == null || email.isEmpty) {
+      throw Exception('User email not found. Please log in again.');
+    }
+    
+    const String apiUrl = 'https://resumaker-api.onrender.com/api/resume/upload-resume';
+    
+    // Create multipart request
+    final request = http.MultipartRequest('POST', Uri.parse(apiUrl));
+    
+    // Add user email to request
+    request.fields['email'] = email;
+    
+    // Generate filename based on user name if available
+    final personalInfo = _resumeData['personalInfo'];
+    final String name = personalInfo['name'] ?? 'MyResume';
+    final String fileName = '${name.replaceAll(RegExp(r'\s+'), '_')}_Resume.pdf';
+    
+    // Add the PDF file to the request
+    request.files.add(
+      http.MultipartFile.fromBytes(
+        'resume', // This should match the field name expected by multer
+        bytes,
+        filename: fileName,
+      ),
+    );
+    
+    // Send the request
+    final response = await request.send();
+    
+    // Check if request was successful
+    if (response.statusCode == 200) {
+      final responseData = await response.stream.bytesToString();
+      final jsonResponse = jsonDecode(responseData);
+      
+      print('Resume saved successfully: $jsonResponse');
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Resume saved successfully to your account!'),
+          backgroundColor: Colors.green,
+          duration: Duration(seconds: 3),
+        ),
+      );
+    } else {
+      // Try to parse error response
+      final responseBody = await response.stream.bytesToString();
+      try {
+        final errorData = jsonDecode(responseBody);
+        throw Exception(errorData['error'] ?? 'Server error: ${response.statusCode}');
+      } catch (jsonError) {
+        throw Exception('Server error: ${response.statusCode} ${response.reasonPhrase}');
+      }
+    }
+  } catch (e) {
+    print('Error saving resume: $e');
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Failed to save resume: ${e.toString()}'),
+        backgroundColor: Colors.red,
+        duration: const Duration(seconds: 5),
+      ),
+    );
+  }
+}
   // Method 1: Generate the PDF document
 Future<pw.Document> _generatePdf() async {
   final pdfDoc = pw.Document();
