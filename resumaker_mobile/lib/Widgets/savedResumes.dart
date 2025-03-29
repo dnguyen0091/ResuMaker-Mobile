@@ -1,4 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../app_color.dart';
 
@@ -17,6 +22,7 @@ class SavedResumes extends StatefulWidget {
 class _SavedResumesState extends State<SavedResumes> {
   List<ResumeData> _resumes = [];
   bool _isLoading = true;
+  String? _error;
   
   @override
   void initState() {
@@ -27,35 +33,122 @@ class _SavedResumesState extends State<SavedResumes> {
   Future<void> _fetchResumes() async {
     setState(() {
       _isLoading = true;
+      _error = null;
     });
     
     try {
-      // This would be replaced with your actual API call
-      // Example: final response = await http.get(Uri.parse('your-api-endpoint'));
+      // Get user email from SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      final userData = prefs.getString('user');
       
-
-      await Future.delayed(const Duration(milliseconds: 800));
+      if (userData == null) {
+        throw Exception('User data not found. Please log in again.');
+      }
       
-      // Mock data for testing
-      final mockResumes = List.generate(
-        10, 
-        (index) => ResumeData(
-          id: 'resume_$index',
-          name: 'Resume ${index + 1}',
-          createdAt: DateTime.now().subtract(Duration(days: index * 3)),
-        )
+      final user = jsonDecode(userData);
+      final String? userEmail = user['email'];
+      
+      if (userEmail == null || userEmail.isEmpty) {
+        throw Exception('User email not found. Please log in again.');
+      }
+      
+      // Get authorization token
+      final token = prefs.getString('token');
+      
+      if (token == null || token.isEmpty) {
+        throw Exception('Authentication token not found. Please log in again.');
+      }
+      
+      // API endpoint - same as in your web app
+      const apiUrl = 'https://resumaker-api.onrender.com';
+      final response = await http.get(
+        Uri.parse('$apiUrl/api/resume/$userEmail/resumes'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
       );
       
+      if (response.statusCode != 200) {
+        final errorData = jsonDecode(response.body);
+        throw Exception(errorData['message'] ?? 'Failed to fetch resumes');
+      }
+      
+      // Parse the response
+      final List<dynamic> resumesJson = jsonDecode(response.body);
+      final List<ResumeData> fetchedResumes = resumesJson.map((json) => ResumeData.fromJson(json)).toList();
+      
       setState(() {
-        _resumes = mockResumes;
+        _resumes = fetchedResumes;
         _isLoading = false;
       });
     } catch (e) {
+      print('Error fetching resumes: $e');
+      setState(() {
+        _error = e.toString();
+        _isLoading = false;
+      });
+    }
+  }
+
+  // View resume function - similar to handleViewResume in your web app
+  Future<void> _viewResume(ResumeData resume) async {
+    try {
+      setState(() {
+        _isLoading = true;
+      });
+      
+      // Get token from SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token');
+      
+      if (token == null || token.isEmpty) {
+        throw Exception('Authentication token not found. Please log in again.');
+      }
+      
+      // API endpoint
+      const apiUrl = 'https://resumaker-api.onrender.com';
+      final response = await http.get(
+        Uri.parse('$apiUrl/api/resume/view/${resume.id}'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+      
+      if (response.statusCode != 200) {
+        final errorData = jsonDecode(response.body);
+        throw Exception(errorData['message'] ?? 'Failed to fetch resume');
+      }
+      
+      // Parse the response
+      final resumeData = jsonDecode(response.body);
+      
+      if (resumeData['filePath'] == null) {
+        throw Exception('Resume file path not found');
+      }
+      
+      // Construct the full URL to the PDF file
+      final pdfUrl = '$apiUrl${resumeData['filePath']}?token=$token';
+      
+      // Open the PDF in the browser/external viewer
+      if (await canLaunch(pdfUrl)) {
+        await launch(pdfUrl);
+      } else {
+        throw Exception('Could not launch $pdfUrl');
+      }
+    } catch (e) {
+      print('Error viewing resume: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error viewing resume: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
       setState(() {
         _isLoading = false;
       });
-      // Handle error
-      debugPrint('Error fetching resumes: $e');
     }
   }
 
@@ -115,32 +208,83 @@ class _SavedResumesState extends State<SavedResumes> {
                               color: AppColor.accent,
                             ),
                           )
-                        : _resumes.isEmpty
+                        : _error != null
                           ? Center(
-                              child: Text(
-                                'No saved resumes found',
-                                style: TextStyle(color: AppColor.secondaryText),
+                              child: Padding(
+                                padding: const EdgeInsets.all(16.0),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.error_outline,
+                                      color: Colors.red,
+                                      size: 48,
+                                    ),
+                                    SizedBox(height: 16),
+                                    Text(
+                                      'Error loading resumes',
+                                      style: TextStyle(
+                                        color: AppColor.text,
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    SizedBox(height: 8),
+                                    Text(
+                                      _error!,
+                                      style: TextStyle(color: AppColor.secondaryText),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                    SizedBox(height: 16),
+                                    ElevatedButton(
+                                      onPressed: _fetchResumes,
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: AppColor.accent,
+                                        foregroundColor: AppColor.text,
+                                      ),
+                                      child: Text('Try Again'),
+                                    ),
+                                  ],
+                                ),
                               ),
                             )
-                          : Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                              child: GridView.builder(
-                                padding: const EdgeInsets.symmetric(vertical: 16),
-                                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount: 2,
-                                  crossAxisSpacing: 12,
-                                  mainAxisSpacing: 12,
-                                  childAspectRatio: 0.9, // Changed from 1.2 to 0.9 for more height
+                          : _resumes.isEmpty
+                            ? Center(
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.description_outlined,
+                                      color: AppColor.secondaryText,
+                                      size: 48,
+                                    ),
+                                    SizedBox(height: 16),
+                                    Text(
+                                      'No saved resumes found',
+                                      style: TextStyle(color: AppColor.secondaryText),
+                                    ),
+                                  ],
                                 ),
-                                itemCount: _resumes.length,
-                                itemBuilder: (context, index) {
-                                  return ResumeCard(
-                                    resumeData: _resumes[index],
-                                    onView: () => _viewResume(_resumes[index]),
-                                  );
-                                },
+                              )
+                            : Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                                child: GridView.builder(
+                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                    crossAxisCount: 2,
+                                    crossAxisSpacing: 12,
+                                    mainAxisSpacing: 12,
+                                    childAspectRatio: 0.9, // Changed from 1.2 to 0.9 for more height
+                                  ),
+                                  itemCount: _resumes.length,
+                                  itemBuilder: (context, index) {
+                                    return ResumeCard(
+                                      resumeData: _resumes[index],
+                                      onView: () => _viewResume(_resumes[index]),
+                                    );
+                                  },
+                                ),
                               ),
-                            ),
                     ),
                   ],
                 ),
@@ -150,17 +294,6 @@ class _SavedResumesState extends State<SavedResumes> {
         ),
       ),
     );
-  }
-  
-  void _viewResume(ResumeData resume) {
-    // Navigate to resume view
-    debugPrint('Viewing resume: ${resume.name}');
-    // Navigator.push(
-    //   context, 
-    //   MaterialPageRoute(
-    //     builder: (context) => ResumeViewPage(resumeId: resume.id),
-    //   ),
-    // );
   }
 }
 
@@ -209,6 +342,20 @@ class ResumeCard extends StatelessWidget {
               maxLines: 1,
             ),
           ),
+          const SizedBox(height: 4),
+          // Add created date
+          Flexible(
+            child: Text(
+              'Created: ${_formatDate(resumeData.createdAt)}',
+              style: TextStyle(
+                fontSize: 12,
+                color: AppColor.secondaryText,
+              ),
+              textAlign: TextAlign.center,
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+            ),
+          ),
           const SizedBox(height: 12),
           // Made button more compact
           SizedBox(
@@ -228,26 +375,36 @@ class ResumeCard extends StatelessWidget {
       ),
     );
   }
+  
+  // Helper method to format date
+  String _formatDate(DateTime date) {
+    return '${date.month}/${date.day}/${date.year}';
+  }
 }
 
-// Data model for resumes
+// Data model for resumes - updated to match the API response
 class ResumeData {
   final String id;
   final String name;
-  final DateTime createdAt; // Kept for data model, but not displayed
+  final DateTime createdAt;
+  final String? filePath;
   
   ResumeData({
     required this.id,
     required this.name,
     required this.createdAt,
+    this.filePath,
   });
   
   // Factory constructor to create a ResumeData from JSON
   factory ResumeData.fromJson(Map<String, dynamic> json) {
     return ResumeData(
-      id: json['id'],
-      name: json['name'],
-      createdAt: DateTime.parse(json['createdAt']),
+      id: json['_id'] ?? '', // Using _id as in MongoDB
+      name: json['fileName'] ?? 'Untitled Resume',
+      createdAt: json['uploadedAt'] != null 
+        ? DateTime.parse(json['uploadedAt']) 
+        : DateTime.now(),
+      filePath: json['filePath'],
     );
   }
 }
